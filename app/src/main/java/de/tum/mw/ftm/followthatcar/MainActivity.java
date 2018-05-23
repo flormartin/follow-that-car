@@ -7,6 +7,8 @@ public class MainActivity extends AppCompatActivity {
 
     public String test;
 
+    public String Fuyuan;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
