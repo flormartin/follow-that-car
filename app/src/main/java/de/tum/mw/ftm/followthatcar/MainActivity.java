@@ -10,6 +10,7 @@ public class MainActivity extends AppCompatActivity {
     public String Fuyuan;
     public String Florian;
 
+    public String mergen;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
