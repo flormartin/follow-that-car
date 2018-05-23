@@ -8,6 +8,7 @@ public class MainActivity extends AppCompatActivity {
     public String test;
 
     public String Fuyuan;
+    public String Florian;
 
 
     @Override
