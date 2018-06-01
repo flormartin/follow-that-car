@@ -21,11 +21,11 @@
 
         </fragment>
 
-        <FrameLayout
-            android:id="@+id/blank"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="0.67">
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="0.67"
+        android:id="@+id/container">
 
         </FrameLayout>
     </LinearLayout>

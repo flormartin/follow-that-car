@@ -24,8 +24,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        final BlankFragment blankFragment = new BlankFragment();
-        getFragmentManager().beginTransaction().add(R.id.blank, blankFragment).commit();
+        getFragmentManager().beginTransaction().add(R.id.container, new InputFragment()).commit();
 
         fab = findViewById(R.id.fab);
         //TODO: function of floating action button
