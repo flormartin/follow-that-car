@@ -36,6 +36,7 @@ public class DecisionFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 getFragmentManager().beginTransaction().replace(R.id.container,new ShowFragment()).commit();
+                setFabOn();
             }
         });
 
@@ -43,10 +44,14 @@ public class DecisionFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 getFragmentManager().beginTransaction().replace(R.id.container,new InputFragment()).commit();
+                setFabOn();
             }
         });
 
         return view;
     }
 
+    private void setFabOn(){
+        getActivity().findViewById(R.id.fab).setVisibility(View.VISIBLE);
+    }
 }

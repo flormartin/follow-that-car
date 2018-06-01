@@ -38,7 +38,8 @@
         android:layout_margin="16dp"
         android:src="@drawable/ic_start"
         map:layout_anchor="@id/map"
-        map:layout_anchorGravity="bottom|end"/>
+        map:layout_anchorGravity="bottom|end"
+        android:visibility="invisible"/>
 
 
 </android.support.design.widget.CoordinatorLayout>

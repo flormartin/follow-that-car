@@ -3,11 +3,8 @@ package de.tum.mw.ftm.followthatcar;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.Button;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -20,9 +17,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FrameLayout container;
     private boolean isServiceRunning = false;
 
-    private Button buttonMe;
-    private Button buttonOther;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,7 +25,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        getFragmentManager().beginTransaction().add(R.id.container,new DecisionFragment()).commit();
+        getFragmentManager().beginTransaction().add(R.id.container, new DecisionFragment()).commit();
         container = findViewById(R.id.container);
 
         fab = findViewById(R.id.fab);
@@ -50,14 +44,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     getContainerBack();
                     isServiceRunning = false;
                 }
-
-//                FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(0, FrameLayout.LayoutParams.MATCH_PARENT);
-//                params.gravity = 0;
-//                try {
-//                    getFragmentManager().beginTransaction().remove(inputFragment).commit();
-//                }catch (NullPointerException e) {
-//                    Log.e(TAG, "onClick: ", e);
-//                }
 
             }
         });
