@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.Button;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -19,6 +20,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FrameLayout container;
     private boolean isServiceRunning = false;
 
+    private Button buttonMe;
+    private Button buttonOther;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -26,8 +30,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        final InputFragment inputFragment = new InputFragment();
-        getFragmentManager().beginTransaction().add(R.id.container, inputFragment).commit();
+
+        getFragmentManager().beginTransaction().add(R.id.container,new DecisionFragment()).commit();
         container = findViewById(R.id.container);
 
         fab = findViewById(R.id.fab);

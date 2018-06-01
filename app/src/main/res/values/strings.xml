@@ -15,4 +15,8 @@
     <string name="id">ID:</string>
     <string name="pin">PIN:</string>
 
+    <!-- strings for DecisionFragment -->
+    <string name="followme">follow me</string>
+    <string name="followother">follow other</string>
+
 </resources>
