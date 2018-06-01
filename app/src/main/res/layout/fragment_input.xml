@@ -9,16 +9,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:layout_marginRight="80dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginBottom="20dp">
+        android:layout_margin="20dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_margin="10dp">
+            android:layout_marginRight="80dp"
+            android:layout_marginBottom="10dp">
 
             <TextView
                 android:id="@+id/id"
@@ -36,6 +34,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:hint="@string/id_hint"
+                android:textSize="20sp"
                 android:inputType="number"
                 android:textColor="@color/colorPrimary"/>
         </LinearLayout>
@@ -44,7 +43,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_margin="10dp">
+            android:layout_marginRight="80dp"
+            android:layout_marginBottom="10dp">
 
             <TextView
                 android:id="@+id/pin"
@@ -62,6 +62,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:hint="@string/pin_hint"
+                android:textSize="20sp"
                 android:inputType="number"
                 android:textColor="@color/colorPrimary" />
 
