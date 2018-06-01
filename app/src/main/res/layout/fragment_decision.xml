@@ -13,9 +13,10 @@
 
         <Button
             android:id="@+id/followme_btn"
+            android:clickable="true"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="Follow Me"
+            android:text="@string/followme"
             android:layout_weight="1"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -25,9 +26,10 @@
 
         <Button
             android:id="@+id/followother_btn"
+            android:clickable="true"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="Follow Other"
+            android:text="@string/followother"
             android:layout_weight="1"
             android:textSize="20sp"
             android:textStyle="bold"

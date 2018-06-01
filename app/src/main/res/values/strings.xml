@@ -15,7 +15,8 @@
     <string name="id">ID:</string>
     <string name="pin">PIN:</string>
 
-    <string name="followme_btn">FollowMe fragment</string>
-    <string name="followother_btn">FollowOther blank fragment</string>
+    <!-- strings for DecisionFragment -->
+    <string name="followme">follow me</string>
+    <string name="followother">follow other</string>
 
 </resources>
