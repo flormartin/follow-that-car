@@ -7,60 +7,57 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:layout_gravity="center"
         android:layout_margin="20dp">
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginRight="80dp"
-            android:layout_marginBottom="10dp">
+            android:layout_gravity="center"
+            android:layout_margin="5dp">
 
             <TextView
                 android:id="@+id/id"
-                android:layout_width="match_parent"
+                android:layout_width="100dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="3"
                 android:text="@string/id"
-                android:textSize="20sp"
+                android:textSize="22sp"
                 android:textStyle="bold"
                 android:textColor="@color/colorPrimary"/>
 
             <EditText
                 android:id="@+id/input_id"
-                android:layout_width="match_parent"
+                android:layout_width="150dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:hint="@string/id_hint"
-                android:textSize="20sp"
+                android:textSize="22sp"
                 android:inputType="number"
                 android:textColor="@color/colorPrimary"/>
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginRight="80dp"
-            android:layout_marginBottom="10dp">
+            android:layout_gravity="center"
+            android:layout_margin="5dp">
 
             <TextView
                 android:id="@+id/pin"
-                android:layout_width="match_parent"
+                android:layout_width="100dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="3"
                 android:text="@string/pin"
-                android:textSize="20sp"
+                android:textSize="22sp"
                 android:textStyle="bold"
                 android:textColor="@color/colorPrimary"/>
 
             <EditText
                 android:id="@+id/input_pin"
-                android:layout_width="match_parent"
+                android:layout_width="150dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:hint="@string/pin_hint"
                 android:textSize="20sp"
                 android:inputType="number"

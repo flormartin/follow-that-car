@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.Random;
+import java.util.stream.IntStream;
 
 
 /**
@@ -31,15 +32,14 @@ public class ShowFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         //create ID and PIN
-        Random rand = new Random();
-        int id = rand.nextInt(rand.nextInt(100000000) + 999999999); //neunstellig
-        int pin = rand.nextInt(rand.nextInt(1000) + 9999); //vierstellig
+        int randId = (int)(Math.random()*900000000)+100000000; //9-digit
+        int randPin = (int)(Math.random()*9000)+1000; //4-digit
 
         View view = inflater.inflate(R.layout.fragment_show, container, false);
         tvId = view.findViewById(R.id.show_id);
-        tvId.setText(""+id);
+        tvId.setText("" + randId);
         tvPin = view.findViewById(R.id.show_pin);
-        tvId.setText(""+pin);
+        tvPin.setText("" + randPin);
 
 
         // Inflate the layout for this fragment
