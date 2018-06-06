@@ -1,8 +1,14 @@
 package de.tum.mw.ftm.followthatcar;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 
@@ -16,6 +22,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FloatingActionButton fab;
     private FrameLayout container;
     private boolean isServiceRunning = false;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
+    private GoogleMap map;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,10 +82,47 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-
+        map = googleMap;
+        Log.d(TAG, "onMapReady: Map is ready");
     }
 
     public void addFab() {
         FloatingActionButton floatingActionButton = new FloatingActionButton(this);
     }
+
+    private void enableMyLocation() {
+        //Check build version. If M or higher we have to check permission during runtime.
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                // Permission to access the location is missing. -> request it
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        LOCATION_PERMISSION_REQUEST_CODE);
+            } else if (map != null) {
+                // Access to the location has been granted to the app. -> enable my location
+                map.setMyLocationEnabled(true);
+                map.getUiSettings().setMyLocationButtonEnabled(true);
+            }
+        }
+        else if (map != null) {
+            // Access to the location has been granted to the app. -> enable my location
+            map.setMyLocationEnabled(true);
+            map.getUiSettings().setMyLocationButtonEnabled(true);
+        }
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        //Check if it is the right request code
+        if(requestCode == LOCATION_PERMISSION_REQUEST_CODE){
+            //Check if it is the permission we have asked for and if it has been granted
+            if (permissions.length == 1 &&
+                    permissions[0].equals(Manifest.permission.ACCESS_FINE_LOCATION) &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                //If permission was granted enable location
+                enableMyLocation();
+            }
+        }
+    }
 }
+
+
