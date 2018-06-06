@@ -18,7 +18,7 @@
             android:layout_margin="10dp">
 
             <TextView
-                android:id="@+id/id"
+                android:id="@+id/your_id"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
@@ -28,12 +28,12 @@
                 android:textColor="@color/colorPrimary"/>
 
             <TextView
-
+                android:id="@+id/show_id"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+
                 android:textSize="20sp"
-                android:text="XXXXXXXXX"
                 android:textColor="@color/colorPrimary"/>
         </LinearLayout>
 
@@ -44,7 +44,7 @@
             android:layout_margin="10dp">
 
             <TextView
-                android:id="@+id/pin"
+                android:id="@+id/your_pin"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
@@ -54,11 +54,12 @@
                 android:textColor="@color/colorPrimary"/>
 
             <TextView
+                android:id="@+id/show_pin"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+
                 android:layout_weight="1"
                 android:textSize="20sp"
-                android:text="XXXXX"
                 android:textColor="@color/colorPrimary"/>
 
         </LinearLayout>
