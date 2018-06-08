@@ -7,58 +7,56 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:layout_gravity="center"
         android:layout_margin="20dp">
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:layout_gravity="center"
             android:layout_margin="10dp">
 
             <TextView
-                android:id="@+id/id"
-                android:layout_width="match_parent"
+                android:id="@+id/your_id"
+                android:layout_width="100dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="2"
                 android:text="@string/your_id"
-                android:textSize="20sp"
+                android:textSize="22sp"
                 android:textStyle="bold"
                 android:textColor="@color/colorPrimary"/>
 
             <TextView
-
-                android:layout_width="match_parent"
+                android:id="@+id/show_id"
+                android:layout_width="150dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textSize="20sp"
-                android:text="XXXXXXXXX"
+                android:textSize="22sp"
                 android:textColor="@color/colorPrimary"/>
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:layout_gravity="center"
             android:layout_margin="10dp">
 
             <TextView
-                android:id="@+id/pin"
-                android:layout_width="match_parent"
+                android:id="@+id/your_pin"
+                android:layout_width="100dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="2"
                 android:text="@string/your_pin"
-                android:textSize="20sp"
+                android:textSize="22sp"
                 android:textStyle="bold"
                 android:textColor="@color/colorPrimary"/>
 
             <TextView
-                android:layout_width="match_parent"
+                android:id="@+id/show_pin"
+                android:layout_width="150dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textSize="20sp"
-                android:text="XXXXX"
+                android:textSize="22sp"
                 android:textColor="@color/colorPrimary"/>
 
         </LinearLayout>

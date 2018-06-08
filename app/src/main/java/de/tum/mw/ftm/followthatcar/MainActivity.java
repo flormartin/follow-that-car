@@ -1,7 +1,16 @@
 package de.tum.mw.ftm.followthatcar;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.os.Build;
+import android.support.annotation.NonNull;
 import android.app.Activity;
 import android.support.design.widget.FloatingActionButton;
+import android.app.Fragment;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -12,18 +21,25 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.PolyUtil;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.CookieHandler;
 import java.net.CookieManager;
+import java.util.ArrayList;
 import java.util.List;
+
 
 import de.tum.mw.ftm.followthatcar.util.MySingleton;
 
@@ -35,7 +51,8 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     private FloatingActionButton userFab;
     private FrameLayout container;
     private boolean isServiceRunning = false;
-    private GoogleMap googleMap;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
+    private GoogleMap map;
 
     private enum FragmentNow{IDLE, FOLLOW_ME, FOLLOW_OTHER};
     private FragmentNow fragmentNow;
@@ -75,7 +92,6 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                         //TODO if error, regenerate id
                         //TODO wait for response
                     }
-
                 } else {
                     // Set view away
                     getContainerBack();
@@ -91,6 +107,20 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         CookieHandler.setDefault(new CookieManager());
     }
 
+    @Override
+    public void onBackPressed() {
+        //super.onBackPressed();
+        boolean show = getFragmentManager().findFragmentById(R.id.container) instanceof ShowFragment;
+        boolean input = getFragmentManager().findFragmentById(R.id.container) instanceof InputFragment;
+        int visible = container.getVisibility();
+        if((show || input) && (visible==0)) {
+            getFragmentManager().beginTransaction().replace(R.id.container, new DecisionFragment()).commit();
+        }
+        else{
+            getContainerBack();
+        }
+    }
+    //TODO stop floating action button when "BACK" is pressed
     private void moveContainerAway() {
         setFabIcon(true);
         container.setVisibility(View.GONE);
@@ -120,12 +150,47 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        this.googleMap = googleMap;
-        Log.d(TAG, "onMapReady: ready");
+        map = googleMap;
+        Log.d(TAG, "onMapReady: Map is ready");
+        enableMyLocation();
     }
 
     public void addFab() {
         FloatingActionButton floatingActionButton = new FloatingActionButton(this);
+    }
+
+    private void enableMyLocation() {
+        //Check build version. If M or higher we have to check permission during runtime.
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                // Permission to access the location is missing. -> request it
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        LOCATION_PERMISSION_REQUEST_CODE);
+            } else if (map != null) {
+                // Access to the location has been granted to the app. -> enable my location
+                map.setMyLocationEnabled(true);
+                map.getUiSettings().setMyLocationButtonEnabled(true);
+            }
+        }
+        else if (map != null) {
+            // Access to the location has been granted to the app. -> enable my location
+            map.setMyLocationEnabled(true);
+            map.getUiSettings().setMyLocationButtonEnabled(true);
+        }
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        //Check if it is the right request code
+        if(requestCode == LOCATION_PERMISSION_REQUEST_CODE){
+            //Check if it is the permission we have asked for and if it has been granted
+            if (permissions.length == 1 &&
+                    permissions[0].equals(Manifest.permission.ACCESS_FINE_LOCATION) &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                //If permission was granted enable location
+                enableMyLocation();
+            }
+        }
     }
 
     public void registerId(){
@@ -368,6 +433,38 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     }
 
     public void startInput(List<LatLng> points){
+        if(map != null){
+
+
+            //Clear the map from marker and lines
+            map.clear();
+
+            //Move camera to points and add marker for start and end point in case we have recorded points
+            if(points.size() > 0){
+                //Configure the linestyle and add points
+                PolylineOptions options = new PolylineOptions()
+                        .width(5)
+                        .color(Color.BLUE)
+                        .geodesic(true);
+                options.addAll(points);
+
+                //Add line to map
+                map.addPolyline(options);
+
+                //Add marker to map
+                map.addMarker(new MarkerOptions().position(points.get(0))
+                        .icon(BitmapDescriptorFactory
+                                .defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                        .title("Start"));
+                map.addMarker(new MarkerOptions().position(points.get(points.size()-1))
+                        .icon(BitmapDescriptorFactory
+                                .defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                        .title("Ende"));
+
+                //Move camera to the start position
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(points.get(0), 14));
+            }
+        }
 
     }
 }
