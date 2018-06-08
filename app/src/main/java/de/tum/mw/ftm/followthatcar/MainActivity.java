@@ -5,6 +5,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.app.Fragment;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -57,6 +59,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
+    @Override
+    public void onBackPressed() {
+        //super.onBackPressed();
+        boolean show = getFragmentManager().findFragmentById(R.id.container) instanceof ShowFragment;
+        boolean input = getFragmentManager().findFragmentById(R.id.container) instanceof InputFragment;
+        int visible = container.getVisibility();
+        if((show || input) && (visible==0)) {
+            getFragmentManager().beginTransaction().replace(R.id.container, new DecisionFragment()).commit();
+        }
+        else{
+            getContainerBack();
+        }
+    }
+    //TODO stop floating action button when "BACK" is pressed
     private void moveContainerAway() {
         container.setVisibility(View.GONE);
     }
@@ -125,5 +141,3 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 }
-
-
