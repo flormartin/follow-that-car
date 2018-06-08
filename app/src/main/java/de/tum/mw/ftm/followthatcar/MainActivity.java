@@ -2,6 +2,7 @@ package de.tum.mw.ftm.followthatcar;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.app.Activity;
@@ -19,15 +20,22 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.CookieHandler;
 import java.net.CookieManager;
+import java.util.ArrayList;
+import java.util.List;
 
 import de.tum.mw.ftm.followthatcar.util.MySingleton;
 
@@ -331,5 +339,41 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
         // Access the RequestQueue through your singleton class.
         MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
+    }
+
+    public void startInput(List<LatLng> points){
+        if(map != null){
+
+
+            //Clear the map from marker and lines
+            map.clear();
+
+            //Move camera to points and add marker for start and end point in case we have recorded points
+            if(points.size() > 0){
+                //Configure the linestyle and add points
+                PolylineOptions options = new PolylineOptions()
+                        .width(5)
+                        .color(Color.BLUE)
+                        .geodesic(true);
+                options.addAll(points);
+
+                //Add line to map
+                map.addPolyline(options);
+
+                //Add marker to map
+                map.addMarker(new MarkerOptions().position(points.get(0))
+                        .icon(BitmapDescriptorFactory
+                                .defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                        .title("Start"));
+                map.addMarker(new MarkerOptions().position(points.get(points.size()-1))
+                        .icon(BitmapDescriptorFactory
+                                .defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                        .title("Ende"));
+
+                //Move camera to the start position
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(points.get(0), 14));
+            }
+        }
+
     }
 }
