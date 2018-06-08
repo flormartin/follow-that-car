@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -14,25 +15,33 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.maps.android.PolyUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.CookieHandler;
 import java.net.CookieManager;
+import java.util.List;
 
 import de.tum.mw.ftm.followthatcar.util.MySingleton;
 
 public class MainActivity extends Activity implements OnMapReadyCallback {
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final String API_KEY = "AIzaSyAEzZuoJ4EooqZqnARsVsAeVbVZjixzPJQ";
 
     private FloatingActionButton fab;
     private FloatingActionButton userFab;
     private FrameLayout container;
     private boolean isServiceRunning = false;
+    private GoogleMap googleMap;
 
     private enum FragmentNow{IDLE, FOLLOW_ME, FOLLOW_OTHER};
     private FragmentNow fragmentNow;
+
+    private String lat = "";
+    private String lng = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,8 +75,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                         //TODO if error, regenerate id
                         //TODO wait for response
                     }
-                    // Set view away
-                    moveContainerAway();
+
                 } else {
                     // Set view away
                     getContainerBack();
@@ -112,7 +120,8 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-
+        this.googleMap = googleMap;
+        Log.d(TAG, "onMapReady: ready");
     }
 
     public void addFab() {
@@ -124,7 +133,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("user_id", "800000012");
+            jsonObject.put("user_id", "800000014");
             jsonObject.put("password", "1234");
         }catch (JSONException e){
             Log.d(TAG, "registerId: Exception: " + e.toString());
@@ -138,13 +147,27 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                     public void onResponse(JSONObject response) {
                         Log.d(TAG, "onResponse: " + response.toString());
                         //TODO process response
+                        if(response.has("0")){
+                            try {
+                                JSONObject jsonObject1 = response.getJSONObject("0");
+                                if(jsonObject1.getString("error").equals("false")){
+                                    //Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
+                                    // Set view away
+                                    moveContainerAway();
+                                }else{
+                                    Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
+                                    Log.d(TAG, "onResponse: " + jsonObject1.getString("errorMsg"));
+                                }
+                            }catch(JSONException e){
+                                Log.d(TAG, "onResponse: error response: " + e.toString());
+                            }
+                        }
 //                        try {
 //                            //String shortUrl = response.getString("url");
 //                            Log.d(TAG, "onResponse: " + response.toString());
 //                        }catch (JSONException e){
 //                            Log.d(TAG, "onResponse: error response: " + e.toString());
 //                        }
-
                     }
                 }, new Response.ErrorListener() {
 
@@ -177,14 +200,21 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                     @Override
                     public void onResponse(JSONObject response) {
                         Log.d(TAG, "onResponse: " + response.toString());
-                        //TODO process response
-//                        try {
-//                            //String shortUrl = response.getString("url");
-//                            Log.d(TAG, "onResponse: " + response.toString());
-//                        }catch (JSONException e){
-//                            Log.d(TAG, "onResponse: error response: " + e.toString());
-//                        }
-
+                        // process response
+                        try {
+                            JSONObject jsonObject1 = response.getJSONObject("0");
+                            if(jsonObject1.getString("error").equals("false")){
+                                //Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
+                                // Set view away
+                                moveContainerAway();
+                            }else{
+                                Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
+                                Log.d(TAG, "onResponse: " + jsonObject1.getString("errorMsg"));
+                                //TODO regenerate id
+                            }
+                        }catch(JSONException e){
+                            Log.d(TAG, "onResponse: error response: " + e.toString());
+                        }
                     }
                 }, new Response.ErrorListener() {
 
@@ -252,24 +282,92 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                     public void onResponse(JSONObject response) {
                         Log.d(TAG, "onResponse: " + response.toString());
                         //TODO process response
-//                        try {
-//                            //String shortUrl = response.getString("url");
-//                            Log.d(TAG, "onResponse: " + response.toString());
-//                        }catch (JSONException e){
-//                            Log.d(TAG, "onResponse: error response: " + e.toString());
-//                        }
-
+                        if(response.has("0")){
+                            try {
+                                JSONObject jsonObject1 = response.getJSONObject("0");
+                                if(jsonObject1.getString("error").equals("false")){
+                                    //Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
+                                    lat = jsonObject1.getString("lat");
+                                    lng = jsonObject1.getString("lng");
+                                }else{
+                                    Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
+                                    Log.d(TAG, "onResponse: " + jsonObject1.getString("errorMsg"));
+                                }
+                            }catch(JSONException e){
+                                Log.d(TAG, "onResponse: error response: " + e.toString());
+                            }
+                        }
                     }
                 }, new Response.ErrorListener() {
 
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         // TODO: Handle error
-                        Log.d(TAG, "onResponse: error detected" + error.toString());
+                        Log.d(TAG, "onErrorResponse: error detected" + error.toString());
                     }
                 });
 
         // Access the RequestQueue through your singleton class.
         MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
+    }
+
+    public void getGoogleMapPoly(List<LatLng> startEnd){
+        String url = "https://maps.googleapis.com/maps/api/directions/json?origin="
+                + startEnd.get(1).latitude
+                + ","
+                + startEnd.get(1).longitude
+                + "&destination=" +
+                startEnd.get(2).latitude
+                + ","
+                + startEnd.get(2).longitude
+                + "&mode="
+                + "driving"
+                + "&key="
+                + API_KEY;
+
+        // new json request
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.d(TAG, "onResponse: " + response.toString());
+                        // process response
+                        if(response.has("status")){
+                            try {
+                                if(response.getString("status").equals("OK")) {
+                                    JSONObject jsonObject1 = response.getJSONArray("routes").getJSONObject(0);
+                                    JSONObject polylines = jsonObject1.getJSONObject("overview_polyline");
+                                    if (jsonObject1.has("points")) {
+                                        //Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
+                                        List<LatLng> points = PolyUtil.decode(polylines.getString("points"));
+                                        startInput(points);
+                                    } else {
+                                        Toast.makeText(getApplicationContext(), "error while getting route", Toast.LENGTH_SHORT).show();
+                                        Log.d(TAG, "onResponse: error while getting route");
+                                    }
+                                }else{
+                                    Toast.makeText(getApplicationContext(), "can't connect to google map", Toast.LENGTH_SHORT).show();
+                                }
+                            }catch(JSONException e){
+                                Log.d(TAG, "onResponse: error response: " + e.toString());
+                            }
+                        }
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // TODO: Handle error
+                        Log.d(TAG, "onErrorResponse: error detected" + error.toString());
+                    }
+                });
+
+        // Access the RequestQueue through your singleton class.
+        MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
+    }
+
+    public void startInput(List<LatLng> points){
+
     }
 }
