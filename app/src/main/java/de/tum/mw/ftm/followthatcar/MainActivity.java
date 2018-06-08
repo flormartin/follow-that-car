@@ -85,6 +85,10 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                         Log.d(TAG, "onClick: is InputFragment");
                         loginId();
                         //TODO if error, retry
+                        List<LatLng> points = new ArrayList<>();
+                        points.add(new LatLng(48.264671, 11.671391));
+                        points.add(new LatLng(48.398625, 11.723476));
+                        getGoogleMapPoly(points);
                         //TODO start recording user's position and upload to server
                     }else if(getFragmentManager().findFragmentById(R.id.container) instanceof ShowFragment) {
                         Log.d(TAG, "onClick: is ShowFragment");
@@ -378,13 +382,13 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
     public void getGoogleMapPoly(List<LatLng> startEnd){
         String url = "https://maps.googleapis.com/maps/api/directions/json?origin="
-                + startEnd.get(1).latitude
+                + startEnd.get(0).latitude
+                + ","
+                + startEnd.get(0).longitude
+                + "&destination=" +
+                startEnd.get(1).latitude
                 + ","
                 + startEnd.get(1).longitude
-                + "&destination=" +
-                startEnd.get(2).latitude
-                + ","
-                + startEnd.get(2).longitude
                 + "&mode="
                 + "driving"
                 + "&key="
@@ -403,7 +407,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                                 if(response.getString("status").equals("OK")) {
                                     JSONObject jsonObject1 = response.getJSONArray("routes").getJSONObject(0);
                                     JSONObject polylines = jsonObject1.getJSONObject("overview_polyline");
-                                    if (jsonObject1.has("points")) {
+                                    if (polylines.has("points")) {
                                         //Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
                                         List<LatLng> points = PolyUtil.decode(polylines.getString("points"));
                                         startInput(points);
