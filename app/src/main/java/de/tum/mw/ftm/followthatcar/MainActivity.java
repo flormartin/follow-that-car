@@ -84,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
         Log.d(TAG, "onMapReady: Map is ready");
+        enableMyLocation();
     }
 
     public void addFab() {
