@@ -3,6 +3,7 @@ package de.tum.mw.ftm.followthatcar;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Location;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.app.Activity;
@@ -21,6 +22,8 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -38,6 +41,7 @@ import org.json.JSONObject;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -57,8 +61,9 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     private enum FragmentNow{IDLE, FOLLOW_ME, FOLLOW_OTHER};
     private FragmentNow fragmentNow;
 
-    private String lat = "";
-    private String lng = "";
+    private double lat = 0.0;
+    private double lng = 0.0;
+    private LocationCallback locationCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -181,6 +186,24 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             // Access to the location has been granted to the app. -> enable my location
             map.setMyLocationEnabled(true);
             map.getUiSettings().setMyLocationButtonEnabled(true);
+            locationCallback = new LocationCallback(){
+                @Override
+                public void onLocationResult(LocationResult locationResult) {
+                    //The result could be null in rare cases
+                    if (locationResult == null) {
+                        //Simply return if there is no result
+                        return;
+                    }
+                    //Get the last location
+                    Location location = locationResult.getLastLocation();
+                    //Set the current time for the location. There might be errors with the inbuilt date and time
+                    location.setTime(new Date().getTime());
+
+                    lat=location.getLatitude();
+                    lng=location.getLongitude();
+
+                }
+            };
         }
     }
     @Override
@@ -356,8 +379,8 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                                 JSONObject jsonObject1 = response.getJSONObject("0");
                                 if(jsonObject1.getString("error").equals("false")){
                                     //Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
-                                    lat = jsonObject1.getString("lat");
-                                    lng = jsonObject1.getString("lng");
+                                    lat = Double.parseDouble(jsonObject1.getString("lat"));
+                                    lng = Double.parseDouble(jsonObject1.getString("lng"));
                                 }else{
                                     Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
                                     Log.d(TAG, "onResponse: " + jsonObject1.getString("errorMsg"));
@@ -471,4 +494,6 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         }
 
     }
+
+
 }
