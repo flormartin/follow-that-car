@@ -201,7 +201,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
                     lat=location.getLatitude();
                     lng=location.getLongitude();
-
+                    Log.d(TAG, "onLocationResult: " + lat + " " + lng);
                 }
             };
         }
