@@ -1,6 +1,10 @@
 package de.tum.mw.ftm.followthatcar;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -43,6 +47,7 @@ import java.util.Date;
 import java.util.List;
 
 
+import de.tum.mw.ftm.followthatcar.Data.LeaderThread;
 import de.tum.mw.ftm.followthatcar.util.MySingleton;
 
 public class MainActivity extends Activity implements OnMapReadyCallback {
@@ -67,6 +72,9 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     private double lat = 48.262514;
     private double lng = 11.667160;
     private LocationCallback locationCallback;
+
+    private LeaderThread leaderThread;
+    private BroadcastReceiver locationReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,11 +111,13 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                         registerId();
                         //TODO if error, regenerate id
                         //TODO wait for response
-                        uploadPos();
+                        //uploadPos();
+
                     }
                 } else {
                     // Set view away
-                    getContainerBack();
+                    stopThreads();
+                    //getContainerBack();
                 }
 
             }
@@ -131,7 +141,8 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             // stop floating action button when "BACK" is pressed
             fab.setVisibility(View.INVISIBLE);
         } else {
-            getContainerBack();
+            stopThreads();
+            //getContainerBack();
         }
     }
 
@@ -222,6 +233,45 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        //Check if the receiver is already initialized
+        if(locationReceiver == null){
+            //Initialize a new receiver
+            locationReceiver = new BroadcastReceiver() {
+                /**
+                 * Is automatically called if a new broadcast is receiverd
+                 * @param context The context
+                 * @param intent The intent with the content
+                 */
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    //Check if we received the correct broadcast
+                    if(intent.getAction().equals(LeaderThread.LOCATION_BROADCAST)){
+                        Log.d(TAG, "Broadcast received");
+                        //Get the location information from the intent
+                        Location location = intent.getParcelableExtra(LeaderThread.LOCATION_EXTRA);
+                        //Update the speed
+                        //speed.setText(String.format("%.0f", location.getSpeed()*3.6f));
+                        //upload position
+                        uploadPos(location);
+                        //Adjust the zoom and position of the map
+                        int zoom = (17 - Math.round(location.getSpeed() / 8f));
+                        if(map != null){
+                            map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), zoom));
+                        }
+                    }
+                }
+            };
+        }
+        //Create a new filter such that we only receive the desired broadcasts
+        IntentFilter intentFilter = new IntentFilter(LeaderThread.LOCATION_BROADCAST);
+        //Register the broadcast
+        registerReceiver(locationReceiver, intentFilter);
+    }
+
     public void registerId() {
         String url = "https://followmeapp.azurewebsites.net/register.php";
 
@@ -246,6 +296,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                                 if (jsonObject1.getString("error").equals("false")) {
                                     //Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
                                     // Set view away
+                                    startLeaderThread();
                                     moveContainerAway();
                                 } else {
                                     Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
@@ -268,6 +319,11 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
         // Access the RequestQueue through your singleton class.
         MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
+    }
+
+    public void startLeaderThread(){
+        leaderThread = new LeaderThread(getApplicationContext());
+        leaderThread.start();
     }
 
     public void loginId() {
@@ -319,14 +375,14 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     }
 
     //TODO upload position in thread
-    public void uploadPos() {
+    public void uploadPos(Location location) {
         String url = "https://followmeapp.azurewebsites.net/upload.php";
 
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("user_id", "800000017");
-            jsonObject.put("lat", lat);
-            jsonObject.put("lng", lng);
+            jsonObject.put("lat", location.getLatitude());
+            jsonObject.put("lng", location.getLongitude());
             jsonObject.put("time", new Timestamp(new Date().getTime()).toString());
         } catch (JSONException e) {
             Log.d(TAG, "registerId: Exception: " + e.toString());
@@ -500,5 +556,22 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             }
         }
 
+    }
+
+    public void processBroadcast(){
+
+    }
+
+    public void stopThreads(){
+        if(leaderThread != null){
+            leaderThread.stopSensorThread();
+            try{
+                leaderThread.join(1000);
+            }catch (InterruptedException e){
+                e.printStackTrace();
+                Toast.makeText(getApplicationContext(), e.toString(), Toast.LENGTH_SHORT).show();
+            }
+        }
+        getContainerBack();
     }
 }
