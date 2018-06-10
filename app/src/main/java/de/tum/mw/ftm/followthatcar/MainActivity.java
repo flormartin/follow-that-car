@@ -32,7 +32,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.PolyUtil;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -47,7 +46,7 @@ import java.util.Date;
 import java.util.List;
 
 
-import de.tum.mw.ftm.followthatcar.Data.LeaderThread;
+import de.tum.mw.ftm.followthatcar.Data.SensorThread;
 import de.tum.mw.ftm.followthatcar.util.MySingleton;
 
 public class MainActivity extends Activity implements OnMapReadyCallback {
@@ -73,8 +72,9 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     private double lng = 11.667160;
     private LocationCallback locationCallback;
 
-    private LeaderThread leaderThread;
+    private SensorThread sensorThread;
     private BroadcastReceiver locationReceiver;
+    private long lastUpdateTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,6 +128,8 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
         //enable cookie
         CookieHandler.setDefault(new CookieManager());
+
+        lastUpdateTime = new Date().getTime();
     }
 
     @Override
@@ -249,14 +251,21 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     //Check if we received the correct broadcast
-                    if(intent.getAction().equals(LeaderThread.LOCATION_BROADCAST)){
+                    if(intent.getAction().equals(SensorThread.LOCATION_BROADCAST)){
                         Log.d(TAG, "Broadcast received");
                         //Get the location information from the intent
-                        Location location = intent.getParcelableExtra(LeaderThread.LOCATION_EXTRA);
-                        //Update the speed
-                        //speed.setText(String.format("%.0f", location.getSpeed()*3.6f));
-                        //upload position
-                        uploadPos(location);
+                        Location location = intent.getParcelableExtra(SensorThread.LOCATION_EXTRA);
+                        lat = location.getLatitude();
+                        lng = location.getLongitude();
+                        if(getFragmentManager().findFragmentById(R.id.container) instanceof ShowFragment)
+                            //upload position
+                            uploadPos(location);
+                        else if(getFragmentManager().findFragmentById(R.id.container) instanceof InputFragment){
+                            if(location.getTime() - lastUpdateTime > 1000 * 10){
+                                downloadPos();
+                                lastUpdateTime = location.getTime();
+                            }
+                        }
                         //Adjust the zoom and position of the map
                         int zoom = (17 - Math.round(location.getSpeed() / 8f));
                         if(map != null){
@@ -267,9 +276,20 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             };
         }
         //Create a new filter such that we only receive the desired broadcasts
-        IntentFilter intentFilter = new IntentFilter(LeaderThread.LOCATION_BROADCAST);
+        IntentFilter intentFilter = new IntentFilter(SensorThread.LOCATION_BROADCAST);
         //Register the broadcast
         registerReceiver(locationReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if(locationReceiver != null){
+            //Unregister receiver
+            unregisterReceiver(locationReceiver);
+            locationReceiver = null;
+        }
     }
 
     public void registerId() {
@@ -322,8 +342,8 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     }
 
     public void startLeaderThread(){
-        leaderThread = new LeaderThread(getApplicationContext());
-        leaderThread.start();
+        sensorThread = new SensorThread(getApplicationContext());
+        sensorThread.start();
     }
 
     public void loginId() {
@@ -349,7 +369,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                             if (jsonObject1.getString("error").equals("false")) {
                                 //Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
                                 // Set view away
-                                downloadPos();
+                                startLeaderThread();
                                 moveContainerAway();
                             } else {
                                 Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
@@ -558,15 +578,11 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
     }
 
-    public void processBroadcast(){
-
-    }
-
     public void stopThreads(){
-        if(leaderThread != null){
-            leaderThread.stopSensorThread();
+        if(sensorThread != null){
+            sensorThread.stopSensorThread();
             try{
-                leaderThread.join(1000);
+                sensorThread.join(1000);
             }catch (InterruptedException e){
                 e.printStackTrace();
                 Toast.makeText(getApplicationContext(), e.toString(), Toast.LENGTH_SHORT).show();

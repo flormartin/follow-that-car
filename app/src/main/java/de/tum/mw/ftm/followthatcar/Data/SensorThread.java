@@ -18,8 +18,8 @@ import com.google.android.gms.location.LocationServices;
 
 import java.util.Date;
 
-public class LeaderThread extends Thread {
-    private static final String TAG = LeaderThread.class.getSimpleName();
+public class SensorThread extends Thread {
+    private static final String TAG = SensorThread.class.getSimpleName();
 
     public static final String LOCATION_BROADCAST = "de.tum.mw.ftm.LOCATION_BROADCAST";
     public static final String LOCATION_EXTRA = "LOCATION_EXTRA";
@@ -35,7 +35,7 @@ public class LeaderThread extends Thread {
     private FusedLocationProviderClient fusedLocationProviderClient;
     private LocationCallback locationCallback;
 
-    public LeaderThread(Context context) {
+    public SensorThread(Context context) {
         this.context = context;
         //Read settings from shared preferences
         isGpsEnabled = true;
