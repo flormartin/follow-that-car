@@ -3,6 +3,7 @@ package de.tum.mw.ftm.followthatcar;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Location;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.app.Activity;
@@ -18,6 +19,8 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -53,9 +56,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
     private GoogleMap map;
 
-    private enum FragmentNow {IDLE, FOLLOW_ME, FOLLOW_OTHER}
-
-    ;
+    private enum FragmentNow{IDLE, FOLLOW_ME, FOLLOW_OTHER};
     private FragmentNow fragmentNow;
 
     // manual generate position of Garching Forschungszenturm
@@ -63,6 +64,9 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     private String lng = "11.667160";
     private String leaderLat = "";
     private String leaderLng = "";
+    private double lat = 0.0;
+    private double lng = 0.0;
+    private LocationCallback locationCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -183,6 +187,24 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             // Access to the location has been granted to the app. -> enable my location
             map.setMyLocationEnabled(true);
             map.getUiSettings().setMyLocationButtonEnabled(true);
+            locationCallback = new LocationCallback(){
+                @Override
+                public void onLocationResult(LocationResult locationResult) {
+                    //The result could be null in rare cases
+                    if (locationResult == null) {
+                        //Simply return if there is no result
+                        return;
+                    }
+                    //Get the last location
+                    Location location = locationResult.getLastLocation();
+                    //Set the current time for the location. There might be errors with the inbuilt date and time
+                    location.setTime(new Date().getTime());
+
+                    lat=location.getLatitude();
+                    lng=location.getLongitude();
+                    Log.d(TAG, "onLocationResult: " + lat + " " + lng);
+                }
+            };
         }
     }
 
@@ -367,7 +389,9 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                                     points.add(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)));
                                     points.add(new LatLng(Double.parseDouble(leaderLat), Double.parseDouble(leaderLng)));
                                     getGoogleMapPoly(points);
-                                } else {
+                                    lat = Double.parseDouble(jsonObject1.getString("lat"));
+                                    lng = Double.parseDouble(jsonObject1.getString("lng"));
+                                }else{
                                     Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
                                     Log.d(TAG, "onResponse: " + jsonObject1.getString("errorMsg"));
                                 }
