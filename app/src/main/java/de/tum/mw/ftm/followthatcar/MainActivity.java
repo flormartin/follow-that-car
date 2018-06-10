@@ -60,12 +60,12 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     private FragmentNow fragmentNow;
 
     // manual generate position of Garching Forschungszenturm
-    private String lat = "48.262514";
-    private String lng = "11.667160";
-    private String leaderLat = "";
-    private String leaderLng = "";
-    private double lat = 0.0;
-    private double lng = 0.0;
+//    private String lat = "48.262514";
+//    private String lng = "11.667160";
+    private double leaderLat = 0.0;
+    private double leaderLng = 0.0;
+    private double lat = 48.262514;
+    private double lng = 11.667160;
     private LocationCallback locationCallback;
 
     @Override
@@ -382,15 +382,13 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                                 JSONObject jsonObject1 = response.getJSONObject("0");
                                 if (jsonObject1.getString("error").equals("false")) {
                                     //Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
-                                    leaderLat = jsonObject1.getString("lat");
-                                    leaderLng = jsonObject1.getString("lng");
+                                    leaderLat = jsonObject1.getDouble("lat");
+                                    leaderLng = jsonObject1.getDouble("lng");
                                     // ask for route
                                     List<LatLng> points = new ArrayList<>();
-                                    points.add(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)));
-                                    points.add(new LatLng(Double.parseDouble(leaderLat), Double.parseDouble(leaderLng)));
+                                    points.add(new LatLng(lat, lng));
+                                    points.add(new LatLng(leaderLat, leaderLng));
                                     getGoogleMapPoly(points);
-                                    lat = Double.parseDouble(jsonObject1.getString("lat"));
-                                    lng = Double.parseDouble(jsonObject1.getString("lng"));
                                 }else{
                                     Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
                                     Log.d(TAG, "onResponse: " + jsonObject1.getString("errorMsg"));
