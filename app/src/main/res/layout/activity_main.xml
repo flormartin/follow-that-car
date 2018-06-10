@@ -2,6 +2,7 @@
 
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:map="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -14,11 +15,15 @@
         android:orientation="vertical">
 
         <fragment
+            xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/map"
             android:name="com.google.android.gms.maps.MapFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="0.25">
+            android:layout_weight="0.25"
+            map:cameraTargetLat="48.1606917"
+            map:cameraTargetLng="11.5801731"
+            map:cameraZoom="10">
 
         </fragment>
 
@@ -46,12 +51,14 @@
         android:id="@+id/user"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_marginTop="60dp"
+        android:layout_marginLeft="16dp"
         android:src="@drawable/ic_person"
         android:background="@android:color/white"
         map:layout_anchor="@id/map"
         map:layout_anchorGravity="top|start"
-        android:visibility="visible"/>
+        android:visibility="visible"
+        app:fabSize="mini"/>
 
 
 </android.support.design.widget.CoordinatorLayout>

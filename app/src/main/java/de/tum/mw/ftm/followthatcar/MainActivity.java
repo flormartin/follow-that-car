@@ -59,8 +59,10 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     private FragmentNow fragmentNow;
 
     // manual generate position of Garching Forschungszenturm
-    private String lat = "48.264387";
-    private String lng = "11.669676";
+    private String lat = "48.262514";
+    private String lng = "11.667160";
+    private String leaderLat = "";
+    private String leaderLng = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,10 +89,10 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                         Log.d(TAG, "onClick: is InputFragment");
                         loginId();
                         //TODO if error, retry
-                        List<LatLng> points = new ArrayList<>();
-                        points.add(new LatLng(48.264671, 11.671391));
-                        points.add(new LatLng(48.398625, 11.723476));
-                        getGoogleMapPoly(points);
+//                        List<LatLng> points = new ArrayList<>();
+//                        points.add(new LatLng(48.264671, 11.671391));
+//                        points.add(new LatLng(48.398625, 11.723476));
+//                        getGoogleMapPoly(points);
                         //TODO start recording user's position and upload to server
                     } else if (getFragmentManager().findFragmentById(R.id.container) instanceof ShowFragment) {
                         Log.d(TAG, "onClick: is ShowFragment");
@@ -175,6 +177,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                 // Access to the location has been granted to the app. -> enable my location
                 map.setMyLocationEnabled(true);
                 map.getUiSettings().setMyLocationButtonEnabled(true);
+                map.setPadding(0, 32, 0, 0);
             }
         } else if (map != null) {
             // Access to the location has been granted to the app. -> enable my location
@@ -268,6 +271,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                             if (jsonObject1.getString("error").equals("false")) {
                                 //Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
                                 // Set view away
+                                downloadPos();
                                 moveContainerAway();
                             } else {
                                 Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
@@ -343,26 +347,32 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     public void downloadPos() {
         String url = "https://followmeapp.azurewebsites.net/download.php";
 
-        //TODO get and save cookie
+        // prepare json request
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
                 (Request.Method.POST, url, null, new Response.Listener<JSONObject>() {
 
                     @Override
                     public void onResponse(JSONObject response) {
                         Log.d(TAG, "onResponse: " + response.toString());
-                        //TODO process response
+                        // process response
                         if (response.has("0")) {
                             try {
                                 JSONObject jsonObject1 = response.getJSONObject("0");
                                 if (jsonObject1.getString("error").equals("false")) {
                                     //Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
-                                    lat = jsonObject1.getString("lat");
-                                    lng = jsonObject1.getString("lng");
+                                    leaderLat = jsonObject1.getString("lat");
+                                    leaderLng = jsonObject1.getString("lng");
+                                    // ask for route
+                                    List<LatLng> points = new ArrayList<>();
+                                    points.add(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)));
+                                    points.add(new LatLng(Double.parseDouble(leaderLat), Double.parseDouble(leaderLng)));
+                                    getGoogleMapPoly(points);
                                 } else {
                                     Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
                                     Log.d(TAG, "onResponse: " + jsonObject1.getString("errorMsg"));
                                 }
                             } catch (JSONException e) {
+                                Toast.makeText(getApplicationContext(), e.toString(), Toast.LENGTH_SHORT).show();
                                 Log.d(TAG, "onResponse: error response: " + e.toString());
                             }
                         }
@@ -438,8 +448,6 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
     public void startInput(List<LatLng> points) {
         if (map != null) {
-
-
             //Clear the map from marker and lines
             map.clear();
 
