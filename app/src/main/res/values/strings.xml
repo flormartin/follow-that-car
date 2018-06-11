@@ -8,6 +8,8 @@
     <!-- strings for ShowFragment -->
     <string name="your_id">your ID:</string>
     <string name="your_pin">your PIN:</string>
+    <!--<string name="show_id"></string>
+    <string name="show_pin"></string>-->
 
     <!-- strings for InputFragment -->
     <string name="id_hint">type your ID</string>
