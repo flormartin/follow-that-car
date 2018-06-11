@@ -16,7 +16,9 @@ import android.support.v4.content.ContextCompat;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -295,10 +297,13 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     public void registerId() {
         String url = "https://followmeapp.azurewebsites.net/register.php";
 
+        TextView txId = findViewById(R.id.show_id);
+        TextView txPin = findViewById(R.id.show_pin);
+
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("user_id", "800000016");
-            jsonObject.put("password", "1234");
+            jsonObject.put("user_id", txId.getText());
+            jsonObject.put("password", txPin.getText());
         } catch (JSONException e) {
             Log.d(TAG, "registerId: Exception: " + e.toString());
         }
@@ -349,10 +354,14 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     public void loginId() {
         String url = "https://followmeapp.azurewebsites.net/login.php";
 
+        EditText etId = findViewById(R.id.input_id);
+        EditText etPin = findViewById(R.id.input_pin);
+        Log.d(TAG, "registerId: Exception: " + etId.getText() + " " + etPin.getText());
+
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("user_id", "800000014");
-            jsonObject.put("password", "1234");
+            jsonObject.put("user_id", etId.getText());
+            jsonObject.put("password", etPin.getText());
         } catch (JSONException e) {
             Log.d(TAG, "registerId: Exception: " + e.toString());
         }
