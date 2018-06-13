@@ -21,6 +21,7 @@ public class ShowFragment extends Fragment {
 
     TextView tvId;
     TextView tvPin;
+    String stringId, stringPin;
 
     public ShowFragment() {
         // Required empty public constructor
@@ -37,7 +38,9 @@ public class ShowFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_show, container, false);
         tvId = view.findViewById(R.id.show_id);
-        tvId.setText("" + randId);
+        stringId = String.valueOf(randId);
+        tvId.setText(stringId.substring(0,3)+"  "+stringId.substring(3,6)
+        +"  "+stringId.substring(6,9));
         tvPin = view.findViewById(R.id.show_pin);
         tvPin.setText("" + randPin);
 
