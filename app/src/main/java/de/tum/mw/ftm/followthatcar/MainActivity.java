@@ -31,6 +31,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.PolyUtil;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -606,10 +607,13 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                         .icon(BitmapDescriptorFactory
                                 .defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))
                         .title("Start"));
-                map.addMarker(new MarkerOptions().position(route.get(route.size() - 1))
-                        .icon(BitmapDescriptorFactory
-                                .defaultMarker(BitmapDescriptorFactory.HUE_RED))
-                        .title("Ende"));
+//                map.addMarker(new MarkerOptions().position(route.get(route.size() - 1))
+//                        .icon(BitmapDescriptorFactory
+//                                .defaultMarker(BitmapDescriptorFactory.HUE_RED))
+//                        .title("Ende"));
+
+                map.addCircle(new CircleOptions().center(route.get(route.size() - 1))
+                        .fillColor(0xFFFFA726).strokeColor(0xFFC77800)).setRadius(2);
 
                 //Move camera to the start position
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(points.get(0), 14));
