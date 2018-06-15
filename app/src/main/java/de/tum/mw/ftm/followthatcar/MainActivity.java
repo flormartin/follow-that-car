@@ -82,11 +82,19 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
     private List<LatLng> route;
 
+    public static Integer randId, randPin;
+
+    private EditText etId, etPin;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+
+        //create ID and PIN
+        randId = (int) (Math.random() * 900000000) + 100000000; //9-digit
+        randPin = (int) (Math.random() * 9000) + 1000; //4-digit
 
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -305,13 +313,11 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     public void registerId() {
         String url = "https://followmeapp.azurewebsites.net/register.php";
 
-        TextView txId = findViewById(R.id.show_id);
-        TextView txPin = findViewById(R.id.show_pin);
 
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("user_id", txId.getText());
-            jsonObject.put("password", txPin.getText());
+            jsonObject.put("user_id", randId);
+            jsonObject.put("password", randPin);
         } catch (JSONException e) {
             Log.d(TAG, "registerId: Exception: " + e.toString());
         }
@@ -362,18 +368,20 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     public void loginId() {
         String url = "https://followmeapp.azurewebsites.net/login.php";
 
-        EditText etId = findViewById(R.id.input_id);
-        EditText etPin = findViewById(R.id.input_pin);
-        Log.d(TAG, "registerId: Exception: " + etId.getText() + " " + etPin.getText());
-
+        etId = findViewById(R.id.input_id);
+        etPin = findViewById(R.id.input_pin);
+        //Log.d(TAG, "registerId: Exception: " + etId.getText() + " " + etPin.getText());
+        if (!validateForm()) {
+            return;
+        }
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("user_id", etId.getText());
             jsonObject.put("password", etPin.getText());
         } catch (JSONException e) {
             Log.d(TAG, "registerId: Exception: " + e.toString());
-        }
 
+        }
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
                 (Request.Method.POST, url, jsonObject, new Response.Listener<JSONObject>() {
 
@@ -525,7 +533,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                 + ","
                 + startEnd.get(1).longitude
                 + "&mode="
-                + "walking"
+                + "driving"
                 + "&key="
                 + API_KEY;
 
@@ -621,5 +629,36 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             }
         }
         getContainerBack();
+    }
+
+    public boolean validateForm() {
+        boolean valid = true;
+
+        //Get username from EditText
+        String stringId = etId.getText().toString();
+        String stringPin = etPin.getText().toString();
+        //Check if it is empty
+        if (stringId.isEmpty()) {
+            //Set an error if Id is empty
+            etId.setError("required");
+            valid = false;
+        } else if (stringPin.isEmpty()) {
+            //Set an error if Pin is empty
+            etPin.setError("required");
+            valid = false;
+        } else if (!(stringId.length() == 9)) {
+            //Set an error if Id is not 9 digits
+            etId.setError("Your ID needs to be a 9-digit number");
+            valid = false;
+        } else if (!(stringPin.length() == 4)) {
+            //Set an error if Pin is not 9 digits
+            etPin.setError("Your PIN needs to be a 4-digit number");
+            valid = false;
+        } else {
+            //Remove error if not empty
+            etId.setError(null);
+            etPin.setError(null);
+        }
+        return valid;
     }
 }

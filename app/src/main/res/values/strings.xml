@@ -5,15 +5,9 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
-    <!-- strings for ShowFragment -->
-    <string name="your_id">your ID:</string>
-    <string name="your_pin">your PIN:</string>
-    <!--<string name="show_id"></string>
-    <string name="show_pin"></string>-->
-
     <!-- strings for InputFragment -->
-    <string name="id_hint">type your ID</string>
-    <string name="pin_hint">type your PIN</string>
+    <string name="id_hint">9-digit number</string>
+    <string name="pin_hint">4-digit number</string>
     <string name="id">ID:</string>
     <string name="pin">PIN:</string>
 

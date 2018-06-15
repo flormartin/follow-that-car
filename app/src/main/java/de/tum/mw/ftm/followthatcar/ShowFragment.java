@@ -21,6 +21,7 @@ public class ShowFragment extends Fragment {
 
     TextView tvId;
     TextView tvPin;
+    String stringId, stringPin;
 
     public ShowFragment() {
         // Required empty public constructor
@@ -31,15 +32,20 @@ public class ShowFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        //create ID and PIN
-        int randId = (int)(Math.random()*900000000)+100000000; //9-digit
-        int randPin = (int)(Math.random()*9000)+1000; //4-digit
+
+
 
         View view = inflater.inflate(R.layout.fragment_show, container, false);
         tvId = view.findViewById(R.id.show_id);
-        tvId.setText("" + randId);
+        stringId = String.valueOf(MainActivity.randId);
+        tvId.setText(stringId.substring(0,3)+"  "+stringId.substring(3,6)
+        +"  "+stringId.substring(6,9));
         tvPin = view.findViewById(R.id.show_pin);
-        tvPin.setText("" + randPin);
+        stringPin = String.valueOf(MainActivity.randPin);
+        tvPin.setText(stringPin.substring(0,1)+" "
+                        +stringPin.substring(1,2)+" "
+                        +stringPin.substring(2,3)+" "
+                        +stringPin.substring(3));
 
 
         // Inflate the layout for this fragment
