@@ -56,7 +56,6 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     private static final String API_KEY = "AIzaSyAEzZuoJ4EooqZqnARsVsAeVbVZjixzPJQ";
 
     private FloatingActionButton fab;
-    private FloatingActionButton userFab;
     private FrameLayout container;
     private boolean isServiceRunning = false;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
@@ -83,6 +82,9 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     public static Integer randId, randPin;
 
     private EditText etId, etPin;
+
+    //für OnBackPressed
+    private int counter=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,8 +137,6 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             }
         });
 
-        userFab = findViewById(R.id.user);
-        userFab.setAlpha(0.75f);
 
         //enable cookie
         CookieHandler.setDefault(new CookieManager());
@@ -149,11 +149,22 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         //super.onBackPressed();
         boolean show = getFragmentManager().findFragmentById(R.id.container) instanceof ShowFragment;
         boolean input = getFragmentManager().findFragmentById(R.id.container) instanceof InputFragment;
+        boolean decision = getFragmentManager().findFragmentById(R.id.container) instanceof DecisionFragment;
         int visible = container.getVisibility();
+
         if ((show || input) && (visible == 0)) {
             getFragmentManager().beginTransaction().replace(R.id.container, new DecisionFragment()).commit();
             // stop floating action button when "BACK" is pressed
             fab.setVisibility(View.INVISIBLE);
+        } else if(decision&&(visible==0)&&(counter<1)) {
+            counter++;
+            Toast.makeText(getApplicationContext(), "Press back again for exit", Toast.LENGTH_SHORT).show();
+        } else if(decision&&(visible==0)&&(counter==1)){
+            counter = 0;
+            Intent intent = new Intent(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_HOME);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
         } else {
             stopThreads();
             //getContainerBack();

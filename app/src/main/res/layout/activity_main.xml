@@ -47,18 +47,5 @@
         map:layout_anchorGravity="bottom|end"
         android:visibility="invisible"/>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/user"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="60dp"
-        android:layout_marginLeft="16dp"
-        android:src="@drawable/ic_person"
-        android:background="@android:color/white"
-        map:layout_anchor="@id/map"
-        map:layout_anchorGravity="top|start"
-        android:visibility="visible"
-        app:fabSize="mini"/>
-
 
 </android.support.design.widget.CoordinatorLayout>
