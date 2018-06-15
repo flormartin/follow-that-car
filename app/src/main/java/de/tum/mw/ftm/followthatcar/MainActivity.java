@@ -62,7 +62,9 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
     private GoogleMap map;
 
-    private enum FragmentNow{IDLE, FOLLOW_ME, FOLLOW_OTHER};
+    private enum FragmentNow {IDLE, FOLLOW_ME, FOLLOW_OTHER}
+
+    ;
     private FragmentNow fragmentNow;
 
     // manual generate position of Garching Forschungszenturm
@@ -78,11 +80,19 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     private BroadcastReceiver locationReceiver;
     private long lastUpdateTime;
 
+    public static Integer randId, randPin;
+
+    private EditText etId, etPin;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+
+        //create ID and PIN
+        randId = (int) (Math.random() * 900000000) + 100000000; //9-digit
+        randPin = (int) (Math.random() * 9000) + 1000; //4-digit
 
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -202,7 +212,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             // Access to the location has been granted to the app. -> enable my location
             map.setMyLocationEnabled(true);
             map.getUiSettings().setMyLocationButtonEnabled(true);
-            locationCallback = new LocationCallback(){
+            locationCallback = new LocationCallback() {
                 @Override
                 public void onLocationResult(LocationResult locationResult) {
                     //The result could be null in rare cases
@@ -215,8 +225,8 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                     //Set the current time for the location. There might be errors with the inbuilt date and time
                     location.setTime(new Date().getTime());
 
-                    lat=location.getLatitude();
-                    lng=location.getLongitude();
+                    lat = location.getLatitude();
+                    lng = location.getLongitude();
                     Log.d(TAG, "onLocationResult: " + lat + " " + lng);
                 }
             };
@@ -242,7 +252,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         super.onResume();
 
         //Check if the receiver is already initialized
-        if(locationReceiver == null){
+        if (locationReceiver == null) {
             //Initialize a new receiver
             locationReceiver = new BroadcastReceiver() {
                 /**
@@ -253,24 +263,24 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     //Check if we received the correct broadcast
-                    if(intent.getAction().equals(SensorThread.LOCATION_BROADCAST)){
+                    if (intent.getAction().equals(SensorThread.LOCATION_BROADCAST)) {
                         Log.d(TAG, "Broadcast received");
                         //Get the location information from the intent
                         Location location = intent.getParcelableExtra(SensorThread.LOCATION_EXTRA);
                         lat = location.getLatitude();
                         lng = location.getLongitude();
-                        if(getFragmentManager().findFragmentById(R.id.container) instanceof ShowFragment)
+                        if (getFragmentManager().findFragmentById(R.id.container) instanceof ShowFragment)
                             //upload position
                             uploadPos(location);
-                        else if(getFragmentManager().findFragmentById(R.id.container) instanceof InputFragment){
-                            if(location.getTime() - lastUpdateTime > 1000 * 10){
+                        else if (getFragmentManager().findFragmentById(R.id.container) instanceof InputFragment) {
+                            if (location.getTime() - lastUpdateTime > 1000 * 10) {
                                 downloadPos();
                                 lastUpdateTime = location.getTime();
                             }
                         }
                         //Adjust the zoom and position of the map
                         int zoom = (17 - Math.round(location.getSpeed() / 8f));
-                        if(map != null){
+                        if (map != null) {
                             map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), zoom));
                         }
                     }
@@ -287,7 +297,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     protected void onPause() {
         super.onPause();
 
-        if(locationReceiver != null){
+        if (locationReceiver != null) {
             //Unregister receiver
             unregisterReceiver(locationReceiver);
             locationReceiver = null;
@@ -297,13 +307,11 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     public void registerId() {
         String url = "https://followmeapp.azurewebsites.net/register.php";
 
-        TextView txId = findViewById(R.id.show_id);
-        TextView txPin = findViewById(R.id.show_pin);
 
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("user_id", txId.getText());
-            jsonObject.put("password", txPin.getText());
+            jsonObject.put("user_id", randId);
+            jsonObject.put("password", randPin);
         } catch (JSONException e) {
             Log.d(TAG, "registerId: Exception: " + e.toString());
         }
@@ -346,7 +354,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
     }
 
-    public void startLeaderThread(){
+    public void startLeaderThread() {
         sensorThread = new SensorThread(getApplicationContext());
         sensorThread.start();
     }
@@ -354,18 +362,20 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     public void loginId() {
         String url = "https://followmeapp.azurewebsites.net/login.php";
 
-        EditText etId = findViewById(R.id.input_id);
-        EditText etPin = findViewById(R.id.input_pin);
-        Log.d(TAG, "registerId: Exception: " + etId.getText() + " " + etPin.getText());
-
+        etId = findViewById(R.id.input_id);
+        etPin = findViewById(R.id.input_pin);
+        //Log.d(TAG, "registerId: Exception: " + etId.getText() + " " + etPin.getText());
+        if (!validateForm()) {
+            return;
+        }
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("user_id", etId.getText());
             jsonObject.put("password", etPin.getText());
         } catch (JSONException e) {
             Log.d(TAG, "registerId: Exception: " + e.toString());
-        }
 
+        }
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
                 (Request.Method.POST, url, jsonObject, new Response.Listener<JSONObject>() {
 
@@ -474,7 +484,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                                     points.add(new LatLng(lat, lng));
                                     points.add(new LatLng(leaderLat, leaderLng));
                                     getGoogleMapPoly(points);
-                                }else{
+                                } else {
                                     Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
                                     Log.d(TAG, "onResponse: " + jsonObject1.getString("errorMsg"));
                                 }
@@ -587,16 +597,47 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
     }
 
-    public void stopThreads(){
-        if(sensorThread != null){
+    public void stopThreads() {
+        if (sensorThread != null) {
             sensorThread.stopSensorThread();
-            try{
+            try {
                 sensorThread.join(1000);
-            }catch (InterruptedException e){
+            } catch (InterruptedException e) {
                 e.printStackTrace();
                 Toast.makeText(getApplicationContext(), e.toString(), Toast.LENGTH_SHORT).show();
             }
         }
         getContainerBack();
+    }
+
+    public boolean validateForm() {
+        boolean valid = true;
+
+        //Get username from EditText
+        String stringId = etId.getText().toString();
+        String stringPin = etPin.getText().toString();
+        //Check if it is empty
+        if (stringId.isEmpty()) {
+            //Set an error if Id is empty
+            etId.setError("required");
+            valid = false;
+        } else if (stringPin.isEmpty()) {
+            //Set an error if Pin is empty
+            etPin.setError("required");
+            valid = false;
+        } else if (!(stringId.length() == 9)) {
+            //Set an error if Id is not 9 digits
+            etId.setError("Your ID needs to be a 9-digit number");
+            valid = false;
+        } else if (!(stringPin.length() == 4)) {
+            //Set an error if Pin is not 9 digits
+            etPin.setError("Your PIN needs to be a 4-digit number");
+            valid = false;
+        } else {
+            //Remove error if not empty
+            etId.setError(null);
+            etPin.setError(null);
+        }
+        return valid;
     }
 }

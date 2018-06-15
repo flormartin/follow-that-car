@@ -9,55 +9,58 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_gravity="center"
-        android:layout_margin="20dp">
+        android:layout_margin="10dp">
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_gravity="center"
-            android:layout_margin="10dp">
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="15dp">
 
             <TextView
-                android:id="@+id/your_id"
-                android:layout_width="100dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/your_id"
+                android:layout_weight="5"
+                android:text="@string/id"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 android:textColor="@color/colorPrimary"/>
 
             <TextView
                 android:id="@+id/show_id"
-                android:layout_width="150dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:textSize="22sp"
-                android:textColor="@color/colorPrimary"/>
+                android:textColor="@color/colorBlack"/>
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_gravity="center"
-            android:layout_margin="10dp">
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="15dp">
 
             <TextView
-                android:id="@+id/your_pin"
-                android:layout_width="100dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/your_pin"
+                android:layout_weight="5"
+                android:text="@string/pin"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 android:textColor="@color/colorPrimary"/>
 
             <TextView
                 android:id="@+id/show_pin"
-                android:layout_width="150dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:textSize="22sp"
-                android:textColor="@color/colorPrimary"/>
+                android:textColor="@color/colorBlack"/>
 
         </LinearLayout>
 
