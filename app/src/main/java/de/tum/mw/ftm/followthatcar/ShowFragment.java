@@ -42,9 +42,9 @@ public class ShowFragment extends Fragment {
         +"  "+stringId.substring(6,9));
         tvPin = view.findViewById(R.id.show_pin);
         stringPin = String.valueOf(MainActivity.randPin);
-        tvPin.setText(stringPin.substring(0,1)+"   "
-                        +stringPin.substring(1,2)+"   "
-                        +stringPin.substring(2,3)+"   "
+        tvPin.setText(stringPin.substring(0,1)+" "
+                        +stringPin.substring(1,2)+" "
+                        +stringPin.substring(2,3)+" "
                         +stringPin.substring(3));
 
 
