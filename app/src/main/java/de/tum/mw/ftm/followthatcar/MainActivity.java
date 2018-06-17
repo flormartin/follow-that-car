@@ -18,15 +18,12 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -57,35 +54,30 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     private static final String API_KEY = "AIzaSyAEzZuoJ4EooqZqnARsVsAeVbVZjixzPJQ";
 
     private FloatingActionButton fab;
-    private FloatingActionButton userFab;
+
     private FrameLayout container;
     private boolean isServiceRunning = false;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
     private GoogleMap map;
 
-    private enum FragmentNow {IDLE, FOLLOW_ME, FOLLOW_OTHER}
-
-    ;
-    private FragmentNow fragmentNow;
-
-    // manual generate position of Garching Forschungszenturm
-//    private String lat = "48.262514";
-//    private String lng = "11.667160";
     private double leaderLat = 0.0;
     private double leaderLng = 0.0;
     private double lat = 48.262514;
     private double lng = 11.667160;
-    private LocationCallback locationCallback;
 
     private SensorThread sensorThread;
     private BroadcastReceiver locationReceiver;
     private long lastUpdateTime;
 
     private List<LatLng> route;
+    private List<LatLng> routeSelf;
 
     public static Integer randId, randPin;
 
     private EditText etId, etPin;
+
+    private boolean live = false;
+    private boolean nearRoute = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,7 +93,6 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         mapFragment.getMapAsync(this);
 
         getFragmentManager().beginTransaction().add(R.id.container, new DecisionFragment()).commit();
-        fragmentNow = FragmentNow.IDLE;
         container = findViewById(R.id.container);
 
         fab = findViewById(R.id.fab);
@@ -138,15 +129,13 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             }
         });
 
-        userFab = findViewById(R.id.user);
-        userFab.setAlpha(0.75f);
-
         //enable cookie
         CookieHandler.setDefault(new CookieManager());
 
         lastUpdateTime = new Date().getTime();
 
         route = new ArrayList<>();
+        routeSelf = new ArrayList<>();
     }
 
     @Override
@@ -217,24 +206,6 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             // Access to the location has been granted to the app. -> enable my location
             map.setMyLocationEnabled(true);
             map.getUiSettings().setMyLocationButtonEnabled(true);
-            locationCallback = new LocationCallback() {
-                @Override
-                public void onLocationResult(LocationResult locationResult) {
-                    //The result could be null in rare cases
-                    if (locationResult == null) {
-                        //Simply return if there is no result
-                        return;
-                    }
-                    //Get the last location
-                    Location location = locationResult.getLastLocation();
-                    //Set the current time for the location. There might be errors with the inbuilt date and time
-                    location.setTime(new Date().getTime());
-
-                    lat = location.getLatitude();
-                    lng = location.getLongitude();
-                    Log.d(TAG, "onLocationResult: " + lat + " " + lng);
-                }
-            };
         }
     }
 
@@ -274,10 +245,12 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                         Location location = intent.getParcelableExtra(SensorThread.LOCATION_EXTRA);
                         lat = location.getLatitude();
                         lng = location.getLongitude();
-                        if (getFragmentManager().findFragmentById(R.id.container) instanceof ShowFragment)
+                        if (getFragmentManager().findFragmentById(R.id.container) instanceof ShowFragment) {
                             //upload position
                             uploadPos(location);
-                        else if (getFragmentManager().findFragmentById(R.id.container) instanceof InputFragment) {
+                            routeSelf.add(new LatLng(lat, lng));
+                            startInput(routeSelf);
+                        } else if (getFragmentManager().findFragmentById(R.id.container) instanceof InputFragment) {
                             if (location.getTime() - lastUpdateTime > 1000 * 10) {
                                 Toast.makeText(getApplicationContext(), "Download position after " + (location.getTime() - lastUpdateTime), Toast.LENGTH_LONG).show();
                                 Log.d(TAG, "onReceive: Download position after " + (location.getTime() - lastUpdateTime));
@@ -445,7 +418,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                         try {
                             JSONObject jsonObject1 = response.getJSONObject("0");
                             if (jsonObject1.getString("error").equals("false")) {
-
+                                Log.d(TAG, "onResponse: Upload position: ");
                             } else {
                                 Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
                                 Log.d(TAG, "onResponse: " + jsonObject1.getString("errorMsg"));
@@ -485,7 +458,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                                 if (jsonObject1.getString("error").equals("false")) {
                                     List<LatLng> points = new ArrayList<>();
                                     route.clear();
-                                    for (int i = 1; i < response.length(); ++i) {
+                                    for (int i = 1; i < response.length() - 1; ++i) {
                                         jsonObject1 = response.getJSONObject(String.valueOf(i));
 
                                         //Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
@@ -493,14 +466,23 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                                         leaderLng = jsonObject1.getDouble("lng");
                                         // ask for route
 
-                                        if(i == 1) {
+                                        if (i == 1) {
                                             points.add(new LatLng(lat, lng));
                                             points.add(new LatLng(leaderLat, leaderLng));
                                             //getGoogleMapPoly(points);
                                         }
                                         route.add(new LatLng(leaderLat, leaderLng));
                                     }
-                                    getGoogleMapPoly(points);
+
+                                    jsonObject1 = response.getJSONObject(String.valueOf(response.length() - 1));
+                                    live = jsonObject1.getString("live").equals("1");
+
+                                    if (!nearRoute && !nearRoute(points.get(0), points.get(1)))
+                                        getGoogleMapPoly(points);
+                                    else {
+                                        nearRoute = true;
+                                        startInput(points);
+                                    }
                                 } else {
                                     Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
                                     Log.d(TAG, "onResponse: " + jsonObject1.getString("errorMsg"));
@@ -524,7 +506,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
     }
 
-    public void getGoogleMapPoly(List<LatLng> startEnd) {
+    public void getGoogleMapPoly(final List<LatLng> startEnd) {
         String url = "https://maps.googleapis.com/maps/api/directions/json?origin="
                 + startEnd.get(0).latitude
                 + ","
@@ -554,6 +536,12 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                                     if (polylines.has("points")) {
                                         //Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
                                         List<LatLng> points = PolyUtil.decode(polylines.getString("points"));
+                                        if (!points.get(0).equals(startEnd.get(0))) {
+                                            points.add(0, startEnd.get(0));
+                                        }
+                                        if (!points.get(points.size() - 1).equals(startEnd.get(1))) {
+                                            points.add(startEnd.get(1));
+                                        }
                                         startInput(points);
                                     } else {
                                         Toast.makeText(getApplicationContext(), "error while getting route", Toast.LENGTH_SHORT).show();
@@ -585,15 +573,13 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             //Clear the map from marker and lines
             map.clear();
 
-            //Move camera to points and add marker for start and end point in case we have recorded points
-            if (points.size() > 0) {
+            if (getFragmentManager().findFragmentById(R.id.container) instanceof ShowFragment) {
                 //Configure the linestyle and add points
                 PolylineOptions options = new PolylineOptions()
                         .width(5)
                         .color(Color.BLUE)
                         .geodesic(true);
                 options.addAll(points);
-                options.addAll(route);
 
                 //Add line to map
                 map.addPolyline(options);
@@ -602,18 +588,44 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                 map.addMarker(new MarkerOptions().position(points.get(0))
                         .icon(BitmapDescriptorFactory
                                 .defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                        .title("Current Position"));
+                        .title("Start"));
+
+                //Move camera to the start position
+                //map.animateCamera(CameraUpdateFactory.newLatLngZoom(points.get(points.size() - 1), 14));
+                return;
+            }
+
+            //Move camera to points and add marker for start and end point in case we have recorded points
+            if (points.size() > 0) {
+                //Configure the linestyle and add points
+                PolylineOptions options = new PolylineOptions()
+                        .width(5)
+                        .color(Color.BLUE)
+                        .geodesic(true);
+                if (!nearRoute)
+                    options.addAll(points);
+                options.addAll(route);
+
+                //Add line to map
+                map.addPolyline(options);
+
+                //Add marker to map
+//                map.addMarker(new MarkerOptions().position(points.get(0))
+//                        .icon(BitmapDescriptorFactory
+//                                .defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+//                        .title("Current Position"));
                 map.addMarker(new MarkerOptions().position(route.get(0))
                         .icon(BitmapDescriptorFactory
                                 .defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))
                         .title("Start"));
-//                map.addMarker(new MarkerOptions().position(route.get(route.size() - 1))
-//                        .icon(BitmapDescriptorFactory
-//                                .defaultMarker(BitmapDescriptorFactory.HUE_RED))
-//                        .title("Ende"));
-
-                map.addCircle(new CircleOptions().center(route.get(route.size() - 1))
-                        .fillColor(0xFFFFA726).strokeColor(0xFFC77800)).setRadius(2);
+                if (live)
+                    map.addCircle(new CircleOptions().center(route.get(route.size() - 1))
+                            .fillColor(0xFFFFA726).strokeColor(0xFFC77800)).setRadius(2);
+                else
+                    map.addMarker(new MarkerOptions().position(route.get(route.size() - 1))
+                            .icon(BitmapDescriptorFactory
+                                    .defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                            .title("End"));
 
                 //Move camera to the start position
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(points.get(0), 14));
@@ -631,6 +643,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                 e.printStackTrace();
                 Toast.makeText(getApplicationContext(), e.toString(), Toast.LENGTH_SHORT).show();
             }
+            logoutId();
         }
         getContainerBack();
     }
@@ -664,5 +677,60 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             etPin.setError(null);
         }
         return valid;
+    }
+
+    private boolean nearRoute(LatLng start, LatLng end) {
+        // Site: https://www.movable-type.co.uk/scripts/latlong.html
+        int R = 6371000; // metres
+        double phi1 = Math.toRadians(start.latitude);
+        double phi2 = Math.toRadians(end.latitude);
+        double deltaPhi = Math.toRadians(start.latitude - end.latitude);
+        double deltaLambda = Math.toRadians(start.longitude - end.longitude);
+
+        double a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+                Math.cos(phi1) * Math.cos(phi2) *
+                        Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        double d = R * c;
+        // Toast.makeText(getApplicationContext(), "Distance: " + d + "m", Toast.LENGTH_SHORT).show();
+        return d < 100.0;
+    }
+
+    public void logoutId() {
+        String url = "https://followmeapp.azurewebsites.net/logout.php";
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                (Request.Method.POST, url, null, new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.d(TAG, "onResponse: " + response.toString());
+                        // process response
+                        try {
+                            JSONObject jsonObject1 = response.getJSONObject("0");
+                            if (!jsonObject1.getString("error").equals("false")) {
+                                Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
+                            }
+//                            else {
+//                                Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
+//                                Log.d(TAG, "onResponse: " + jsonObject1.getString("errorMsg"));
+//                            }
+                        } catch (JSONException e) {
+                            Log.d(TAG, "onResponse: error response: " + e.toString());
+                        }
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // TODO: Handle error
+                        Log.d(TAG, "onResponse: error detected" + error.toString());
+                        Toast.makeText(getApplicationContext(), error.toString(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        // Access the RequestQueue through your singleton class.
+        MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
     }
 }
