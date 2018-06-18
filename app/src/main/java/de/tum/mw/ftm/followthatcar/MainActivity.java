@@ -1,8 +1,10 @@
 package de.tum.mw.ftm.followthatcar;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -121,9 +123,23 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
                     }
                 } else {
-                    // Set view away
-                    stopThreads();
-                    //getContainerBack();
+                    // Show confirmation dialog
+                    DialogInterface.OnClickListener listener = new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            switch (which) {
+                                case DialogInterface.BUTTON_POSITIVE:
+                                    stopThreads();
+                                    break;
+                                case DialogInterface.BUTTON_NEGATIVE:
+                                    break;
+                            }
+                        }
+                    };
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setMessage("Are you sure you want to end tracking?").setPositiveButton("Yes",listener).setNegativeButton("No", listener).show();
+                    // stopThreads();
+                    // getContainerBack();
                 }
 
             }
