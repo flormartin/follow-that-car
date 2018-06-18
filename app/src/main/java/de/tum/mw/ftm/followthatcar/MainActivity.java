@@ -14,6 +14,7 @@ import android.app.Activity;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -82,6 +83,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     public static Integer randId, randPin;
 
     private EditText etId, etPin;
+    private TextView tvWatermark;
 
     //für OnBackPressed
     private int counter=0;
@@ -102,6 +104,13 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         getFragmentManager().beginTransaction().add(R.id.container, new DecisionFragment()).commit();
         fragmentNow = FragmentNow.IDLE;
         container = findViewById(R.id.container);
+
+        tvWatermark = findViewById(R.id.watermark_tv);
+        String stringWatermark = String.valueOf("ID " + randId + " PIN " + randPin);
+        tvWatermark.setText(Html.fromHtml("<b>" + "hello tracking" + "</b>"
+                +  "<br />" + stringWatermark));
+
+
 
         fab = findViewById(R.id.fab);
         //TODO: function of floating action button
@@ -173,6 +182,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
     private void moveContainerAway() {
         setFabIcon(true);
+        tvWatermark.setVisibility(View.VISIBLE);
         container.setVisibility(View.GONE);
         isServiceRunning = true;
     }
@@ -180,6 +190,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     private void getContainerBack() {
         setFabIcon(false);
         container.setVisibility(View.VISIBLE);
+        tvWatermark.setVisibility(View.GONE);
         isServiceRunning = false;
     }
 

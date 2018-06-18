@@ -21,7 +21,7 @@ public class ShowFragment extends Fragment {
 
     TextView tvId;
     TextView tvPin;
-    String stringId, stringPin;
+    public String stringId, stringPin;
 
     public ShowFragment() {
         // Required empty public constructor

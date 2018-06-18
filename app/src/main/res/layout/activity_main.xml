@@ -47,5 +47,17 @@
         map:layout_anchorGravity="bottom|end"
         android:visibility="invisible"/>
 
+    <TextView
+        android:id="@+id/watermark_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        map:layout_anchor="@id/map"
+        map:layout_anchorGravity="bottom|center"
+        android:visibility="invisible"
+        android:layout_margin="18dp"
+        android:textAlignment="center"
+        android:textSize="19sp"
+        />
+
 
 </android.support.design.widget.CoordinatorLayout>
