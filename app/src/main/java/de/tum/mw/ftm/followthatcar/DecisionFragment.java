@@ -35,7 +35,7 @@ public class DecisionFragment extends Fragment {
         btnMe.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getFragmentManager().beginTransaction().replace(R.id.container,new ShowFragment()).commit();
+                getFragmentManager().beginTransaction().replace(R.id.container, new ShowFragment()).commit();
                 setFabOn();
             }
         });
@@ -43,7 +43,7 @@ public class DecisionFragment extends Fragment {
         btnOther.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getFragmentManager().beginTransaction().replace(R.id.container,new InputFragment()).commit();
+                getFragmentManager().beginTransaction().replace(R.id.container, new InputFragment()).commit();
                 setFabOn();
             }
         });
@@ -51,7 +51,7 @@ public class DecisionFragment extends Fragment {
         return view;
     }
 
-    private void setFabOn(){
+    private void setFabOn() {
         getActivity().findViewById(R.id.fab).setVisibility(View.VISIBLE);
     }
 }
