@@ -20,7 +20,7 @@
             android:layout_weight="1"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:background="@color/colorPrimary"
+            android:background="@color/colorAccent"
             android:textColor="@android:color/white"/>
 
 
@@ -33,7 +33,7 @@
             android:layout_weight="1"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:background="@color/colorAccent"
+            android:background="@color/colorPrimary"
             android:textColor="@android:color/white"/>
 
 

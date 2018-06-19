@@ -16,6 +16,7 @@ import android.app.Activity;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -77,6 +78,10 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     public static Integer randId, randPin;
 
     private EditText etId, etPin;
+    private TextView tvWatermark;
+
+    //für OnBackPressed
+    private int counter=0;
 
     private boolean live = false;
     private boolean nearRoute = false;
@@ -96,6 +101,13 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
         getFragmentManager().beginTransaction().add(R.id.container, new DecisionFragment()).commit();
         container = findViewById(R.id.container);
+
+        tvWatermark = findViewById(R.id.watermark_tv);
+        String stringWatermark = String.valueOf("ID " + randId + " PIN " + randPin);
+        tvWatermark.setText(Html.fromHtml("<b>" + "hello tracking" + "</b>"
+                +  "<br />" + stringWatermark));
+
+
 
         fab = findViewById(R.id.fab);
         //TODO: function of floating action button
@@ -145,6 +157,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             }
         });
 
+
         //enable cookie
         CookieHandler.setDefault(new CookieManager());
 
@@ -159,11 +172,22 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         //super.onBackPressed();
         boolean show = getFragmentManager().findFragmentById(R.id.container) instanceof ShowFragment;
         boolean input = getFragmentManager().findFragmentById(R.id.container) instanceof InputFragment;
+        boolean decision = getFragmentManager().findFragmentById(R.id.container) instanceof DecisionFragment;
         int visible = container.getVisibility();
+
         if ((show || input) && (visible == 0)) {
             getFragmentManager().beginTransaction().replace(R.id.container, new DecisionFragment()).commit();
             // stop floating action button when "BACK" is pressed
             fab.setVisibility(View.INVISIBLE);
+        } else if(decision&&(visible==0)&&(counter<1)) {
+            counter++;
+            Toast.makeText(getApplicationContext(), "Press back again for exit", Toast.LENGTH_SHORT).show();
+        } else if(decision&&(visible==0)&&(counter==1)){
+            counter = 0;
+            Intent intent = new Intent(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_HOME);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
         } else {
             stopThreads();
             //getContainerBack();
@@ -172,6 +196,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
     private void moveContainerAway() {
         setFabIcon(true);
+        tvWatermark.setVisibility(View.VISIBLE);
         container.setVisibility(View.GONE);
         isServiceRunning = true;
     }
@@ -179,6 +204,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     private void getContainerBack() {
         setFabIcon(false);
         container.setVisibility(View.VISIBLE);
+        tvWatermark.setVisibility(View.GONE);
         isServiceRunning = false;
     }
 
