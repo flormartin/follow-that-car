@@ -21,6 +21,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -81,7 +82,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     private TextView tvWatermark;
 
     //für OnBackPressed
-    private int counter=0;
+    private int counter = 0;
 
     private boolean live = false;
     private boolean nearRoute = false;
@@ -105,64 +106,38 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         tvWatermark = findViewById(R.id.watermark_tv);
         String stringWatermark = String.valueOf("ID " + randId + " PIN " + randPin);
         tvWatermark.setText(Html.fromHtml("<b>" + "hello tracking" + "</b>"
-                +  "<br />" + stringWatermark));
-
+                + "<br />" + stringWatermark));
 
 
         fab = findViewById(R.id.fab);
-        //TODO: function of floating action button
+        // function of floating action button
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!isServiceRunning) {
                     // check availability
                     if (getFragmentManager().findFragmentById(R.id.container) instanceof InputFragment) {
-                        //TODO check valid input first
                         Log.d(TAG, "onClick: is InputFragment");
                         loginId();
-                        //TODO if error, retry
-//                        List<LatLng> points = new ArrayList<>();
-//                        points.add(new LatLng(48.264671, 11.671391));
-//                        points.add(new LatLng(48.398625, 11.723476));
-//                        getGoogleMapPoly(points);
-                        //TODO start recording user's position and upload to server
                     } else if (getFragmentManager().findFragmentById(R.id.container) instanceof ShowFragment) {
                         Log.d(TAG, "onClick: is ShowFragment");
                         registerId();
                         //TODO if error, regenerate id
-                        //TODO wait for response
-                        //uploadPos();
-
                     }
                 } else {
                     // Show confirmation dialog
-                    DialogInterface.OnClickListener listener = new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            switch (which) {
-                                case DialogInterface.BUTTON_POSITIVE:
-                                    stopThreads();
-                                    break;
-                                case DialogInterface.BUTTON_NEGATIVE:
-                                    break;
-                            }
-                        }
-                    };
-                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                    builder.setMessage("Are you sure you want to end tracking?").setPositiveButton("Yes",listener).setNegativeButton("No", listener).show();
-                    // stopThreads();
-                    // getContainerBack();
+                    confirmStopRequest();
                 }
 
             }
         });
-
 
         //enable cookie
         CookieHandler.setDefault(new CookieManager());
 
         lastUpdateTime = new Date().getTime();
 
+        // initialize route
         route = new ArrayList<>();
         routeSelf = new ArrayList<>();
     }
@@ -179,18 +154,17 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             getFragmentManager().beginTransaction().replace(R.id.container, new DecisionFragment()).commit();
             // stop floating action button when "BACK" is pressed
             fab.setVisibility(View.INVISIBLE);
-        } else if(decision&&(visible==0)&&(counter<1)) {
+        } else if (decision && (visible == 0) && (counter < 1)) {
             counter++;
             Toast.makeText(getApplicationContext(), "Press back again for exit", Toast.LENGTH_SHORT).show();
-        } else if(decision&&(visible==0)&&(counter==1)){
+        } else if (decision && (visible == 0) && (counter == 1)) {
             counter = 0;
             Intent intent = new Intent(Intent.ACTION_MAIN);
             intent.addCategory(Intent.CATEGORY_HOME);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
         } else {
-            stopThreads();
-            //getContainerBack();
+            confirmStopRequest();
         }
     }
 
@@ -386,7 +360,8 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
         etId = findViewById(R.id.input_id);
         etPin = findViewById(R.id.input_pin);
-        //Log.d(TAG, "registerId: Exception: " + etId.getText() + " " + etPin.getText());
+
+        // check valid input first
         if (!validateForm()) {
             return;
         }
@@ -674,6 +649,23 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             }
         }
 
+    }
+
+    public void confirmStopRequest() {
+        DialogInterface.OnClickListener listener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which) {
+                    case DialogInterface.BUTTON_POSITIVE:
+                        stopThreads();
+                        break;
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        break;
+                }
+            }
+        };
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setMessage("Are you sure you want to end tracking?").setPositiveButton("Yes", listener).setNegativeButton("No", listener).show();
     }
 
     public void stopThreads() {
