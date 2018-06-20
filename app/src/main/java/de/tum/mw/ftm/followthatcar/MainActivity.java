@@ -62,11 +62,6 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
     private GoogleMap map;
 
-    private enum FragmentNow {IDLE, FOLLOW_ME, FOLLOW_OTHER}
-
-    ;
-    private FragmentNow fragmentNow;
-
     // manual generate position of Garching Forschungszenturm
 //    private String lat = "48.262514";
 //    private String lng = "11.667160";
@@ -74,8 +69,6 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     private double leaderLng = 0.0;
     private double lat = 48.262514;
     private double lng = 11.667160;
-    private LocationCallback locationCallback;
-
     private SensorThread sensorThread;
     private BroadcastReceiver locationReceiver;
     private long lastUpdateTime;
@@ -106,9 +99,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         container = findViewById(R.id.container);
 
         tvWatermark = findViewById(R.id.watermark_tv);
-        String stringWatermark = String.valueOf("ID " + randId + " PIN " + randPin);
-        tvWatermark.setText(Html.fromHtml("<b>" + "hello tracking" + "</b>"
-                +  "<br />" + stringWatermark));
+
 
 
 
@@ -329,6 +320,10 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     public void registerId() {
         String url = "https://followmeapp.azurewebsites.net/register.php";
 
+        String stringWatermark = String.valueOf("ID " + randId + " PIN " + randPin);
+        String status = "TRACKING";
+        tvWatermark.setText(Html.fromHtml("<b><font color=#FFA726>" + status + "</font></b>" +  "<br/>"
+                + "<font>" + stringWatermark + "</font>"));
 
         JSONObject jsonObject = new JSONObject();
         try {
@@ -390,6 +385,12 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         if (!validateForm()) {
             return;
         }
+
+        String stringWatermark = String.valueOf("ID " + etId.getText() + " PIN " + etPin.getText());
+        String status = "FOLLOWING";
+        tvWatermark.setText(Html.fromHtml("<b><font color=#FFA726>" + status + "</font></b>"
+                +  "<br/>" + "<font>" + stringWatermark + "</font>"));
+
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("user_id", etId.getText());

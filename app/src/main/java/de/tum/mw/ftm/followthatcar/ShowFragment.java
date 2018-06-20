@@ -39,7 +39,7 @@ public class ShowFragment extends Fragment {
         tvId = view.findViewById(R.id.show_id);
         stringId = String.valueOf(MainActivity.randId);
         tvId.setText(stringId.substring(0,3)+"  "+stringId.substring(3,6)
-        +"  "+stringId.substring(6,9));
+        +"  "+stringId.substring(6));
         tvPin = view.findViewById(R.id.show_pin);
         stringPin = String.valueOf(MainActivity.randPin);
         tvPin.setText(stringPin.substring(0,1)+" "
