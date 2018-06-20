@@ -272,10 +272,10 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                             }
                         }
                         //Adjust the zoom and position of the map
-                        int zoom = (17 - Math.round(location.getSpeed() / 8f));
-                        if (map != null) {
-                            map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), zoom));
-                        }
+                        //int zoom = (17 - Math.round(location.getSpeed() / 8f));
+//                        if (map != null) {
+//                            map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), zoom));
+//                        }
                     }
                 }
             };
@@ -652,7 +652,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                             .title("End"));
 
                 //Move camera to the start position
-                map.animateCamera(CameraUpdateFactory.newLatLngZoom(points.get(0), 14));
+                //map.animateCamera(CameraUpdateFactory.newLatLngZoom(points.get(0), 14));
             }
         }
 
@@ -672,7 +672,10 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             }
         };
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        if(getFragmentManager().findFragmentById(R.id.container) instanceof ShowFragment)
         builder.setMessage("Are you sure you want to end tracking?").setPositiveButton("Yes", listener).setNegativeButton("No", listener).show();
+        else if(getFragmentManager().findFragmentById(R.id.container) instanceof InputFragment)
+            builder.setMessage("Are you sure you want to end following?").setPositiveButton("Yes", listener).setNegativeButton("No", listener).show();
     }
 
     public void stopThreads() {
