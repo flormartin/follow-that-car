@@ -58,7 +58,6 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     private static final String API_KEY = "AIzaSyAEzZuoJ4EooqZqnARsVsAeVbVZjixzPJQ";
 
     private FloatingActionButton fab;
-
     private FrameLayout container;
     private boolean isServiceRunning = false;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
@@ -104,9 +103,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         container = findViewById(R.id.container);
 
         tvWatermark = findViewById(R.id.watermark_tv);
-        String stringWatermark = String.valueOf("ID " + randId + " PIN " + randPin);
-        tvWatermark.setText(Html.fromHtml("<b>" + "hello tracking" + "</b>"
-                + "<br />" + stringWatermark));
+
 
 
         fab = findViewById(R.id.fab);
@@ -303,6 +300,10 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     public void registerId() {
         String url = "https://followmeapp.azurewebsites.net/register.php";
 
+        String stringWatermark = String.valueOf("ID " + randId + " PIN " + randPin);
+        String status = "TRACKING";
+        tvWatermark.setText(Html.fromHtml("<b><font color=#FFA726>" + status + "</font></b>" +  "<br/>"
+                + "<font>" + stringWatermark + "</font>"));
 
         JSONObject jsonObject = new JSONObject();
         try {
@@ -365,6 +366,12 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         if (!validateForm()) {
             return;
         }
+
+        String stringWatermark = String.valueOf("ID " + etId.getText() + " PIN " + etPin.getText());
+        String status = "FOLLOWING";
+        tvWatermark.setText(Html.fromHtml("<b><font color=#FFA726>" + status + "</font></b>"
+                +  "<br/>" + "<font>" + stringWatermark + "</font>"));
+
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("user_id", etId.getText());
