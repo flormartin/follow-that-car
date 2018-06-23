@@ -39,7 +39,7 @@ public class SensorThread extends Thread {
         this.context = context;
         //Read settings from shared preferences
         isGpsEnabled = true;
-        gpsSamplingPeriod = 100 * 1000;
+        gpsSamplingPeriod = 10 * 1000;
         gpsRange = 1;
     }
 
