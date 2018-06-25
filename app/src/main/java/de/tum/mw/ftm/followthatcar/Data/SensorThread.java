@@ -39,7 +39,7 @@ public class SensorThread extends Thread {
         this.context = context;
         //Read settings from shared preferences
         isGpsEnabled = true;
-        gpsSamplingPeriod = 10 * 1000;
+        gpsSamplingPeriod = 5 * 1000;
         gpsRange = 1;
     }
 
@@ -67,7 +67,7 @@ public class SensorThread extends Thread {
             //Set priority
             locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-            //Create a new location callback
+            //Create a new l ocation callback
             locationCallback = new LocationCallback(){
                 /**
                  * This method is automatically called if a new location result is available

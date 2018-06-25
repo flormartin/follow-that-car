@@ -265,7 +265,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                             startInput(routeSelf);
                         } else if (getFragmentManager().findFragmentById(R.id.container) instanceof InputFragment) {
                             if (location.getTime() - lastUpdateTime > 1000 * 10) {
-                                Toast.makeText(getApplicationContext(), "Download position after " + (location.getTime() - lastUpdateTime), Toast.LENGTH_LONG).show();
+                                //Toast.makeText(getApplicationContext(), "Download position after " + (location.getTime() - lastUpdateTime), Toast.LENGTH_LONG).show();
                                 Log.d(TAG, "onReceive: Download position after " + (location.getTime() - lastUpdateTime));
                                 downloadPos();
                                 lastUpdateTime = location.getTime();
