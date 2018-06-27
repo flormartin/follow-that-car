@@ -37,7 +37,6 @@ public class SensorThread extends Thread {
 
     public SensorThread(Context context) {
         this.context = context;
-        //Read settings from shared preferences
         isGpsEnabled = true;
         gpsSamplingPeriod = 5 * 1000;
         gpsRange = 1;
@@ -48,26 +47,26 @@ public class SensorThread extends Thread {
      */
     @Override
     public void run() {
-        //Prepare the looper
+        // Prepare the looper
         Looper.prepare();
-        //Create the handler
+        // Create the handler
         handler = new Handler();
 
-        //Check if GPS is enabled
+        // Check if GPS is enabled
         if(isGpsEnabled){
-            //Initialize the location provider
+            // Initialize the location provider
             fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
-            //Create a new location request
+            // Create a new location request
             final LocationRequest locationRequest = LocationRequest.create();
-            //Set the sampling interval
+            // Set the sampling interval
             locationRequest.setInterval(gpsSamplingPeriod);
             locationRequest.setFastestInterval(gpsSamplingPeriod);
-            //Set the minimum distance between updates
+            // Set the minimum distance between updates
             locationRequest.setSmallestDisplacement(gpsRange);
-            //Set priority
+            // Set priority
             locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-            //Create a new l ocation callback
+            // Create a new l ocation callback
             locationCallback = new LocationCallback(){
                 /**
                  * This method is automatically called if a new location result is available
@@ -75,34 +74,29 @@ public class SensorThread extends Thread {
                  */
                 @Override
                 public void onLocationResult(LocationResult locationResult) {
-                    //The result could be null in rare cases
+                    // The result could be null in rare cases
                     if (locationResult == null) {
-                        //Simply return if there is no result
+                        // Simply return if there is no result
                         return;
                     }
-                    //Get the last location
+                    // Get the last location
                     Location location = locationResult.getLastLocation();
-                    //Set the current time for the location. There might be errors with the inbuilt date and time
+                    // Set the current time for the location. There might be errors with the inbuilt date and time
                     location.setTime(new Date().getTime());
-                    //TODO we can upload position here
-                    //Update the tracks distance in case we have a previous location result
-                    if(lastLocation != null){
-
-                    }
-                    //Update the last result
+                    // Update the last result
                     lastLocation = location;
 
-                    //Prepare a new intent for the broadcast
+                    // Prepare a new intent for the broadcast
                     Intent intent = new Intent();
-                    //Set the action and fill the intent
+                    // Set the action and fill the intent
                     intent.setAction(LOCATION_BROADCAST);
                     intent.putExtra(LOCATION_EXTRA, location);
-                    //Send the broadcast
+                    // Send the broadcast
                     context.sendBroadcast(intent);
                 }
             };
 
-            //Check build version. If M or higher we have to check permission during runtime.
+            // Check build version. If M or higher we have to check permission during runtime.
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
                 if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED) {
@@ -111,12 +105,12 @@ public class SensorThread extends Thread {
                 }
             }
             else {
-                //If lower than M we can directly ask for location updates
+                // If lower than M we can directly ask for location updates
                 fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
             }
         }
 
-        //Execute the looper
+        // Execute the looper
         Looper.loop();
     }
 
@@ -124,28 +118,27 @@ public class SensorThread extends Thread {
      * Stop the thread
      */
     public void stopSensorThread(){
-        //Quit the looper
+        // Quit the looper
         handler.getLooper().quit();
 
-        //Check if GPS was enabled
+        // Check if GPS was enabled
         if (isGpsEnabled){
-            //Again check the build version
+            // Again check the build version
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
                 if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED) {
-                    //Remove location updates
+                    // Remove location updates
                     fusedLocationProviderClient.removeLocationUpdates(locationCallback);
                 }
             }
             else {
-                //Remove location updates
+                // Remove location updates
                 fusedLocationProviderClient.removeLocationUpdates(locationCallback);
             }
         }
 
-        //Stop the thread
+        // Stop the thread
         this.interrupt();
     }
-
 
 }

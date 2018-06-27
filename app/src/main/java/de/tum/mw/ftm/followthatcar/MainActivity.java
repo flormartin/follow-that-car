@@ -53,12 +53,22 @@ import java.util.List;
 import de.tum.mw.ftm.followthatcar.Data.SensorThread;
 import de.tum.mw.ftm.followthatcar.util.MySingleton;
 
+/**
+ * Main activity
+ *
+ * {@link Activity}
+ * @version 1.0
+ * @author Gruppe FollowMe
+ */
 public class MainActivity extends Activity implements OnMapReadyCallback {
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String API_KEY = "AIzaSyAEzZuoJ4EooqZqnARsVsAeVbVZjixzPJQ";
 
+    // Elements
     private FloatingActionButton fab;
     private FrameLayout container;
+    private EditText etId, etPin;
+    private TextView tvWatermark; // show information in full-screen map
     private boolean isServiceRunning = false;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
     private GoogleMap map;
@@ -77,22 +87,24 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
     public static Integer randId, randPin;
 
-    private EditText etId, etPin;
-    private TextView tvWatermark;
-
-    //für OnBackPressed
+    // fuer OnBackPressed
     private int counter = 0;
 
     private boolean live = false;
     private boolean nearRoute = false;
 
+    /**
+     * OnCreate function of MainActivity
+     *
+     * @param savedInstanceState saved instance state
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
 
-        //create ID and PIN
+        // create random ID and PIN
         randId = (int) (Math.random() * 900000000) + 100000000; //9-digit
         randPin = (int) (Math.random() * 9000) + 1000; //4-digit
 
@@ -103,8 +115,6 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         container = findViewById(R.id.container);
 
         tvWatermark = findViewById(R.id.watermark_tv);
-
-
 
         fab = findViewById(R.id.fab);
         // function of floating action button
@@ -119,17 +129,15 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                     } else if (getFragmentManager().findFragmentById(R.id.container) instanceof ShowFragment) {
                         Log.d(TAG, "onClick: is ShowFragment");
                         registerId();
-                        //TODO if error, regenerate id
                     }
                 } else {
                     // Show confirmation dialog
                     confirmStopRequest();
                 }
-
             }
         });
 
-        //enable cookie
+        // enable cookie
         CookieHandler.setDefault(new CookieManager());
 
         lastUpdateTime = new Date().getTime();
@@ -139,9 +147,15 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         routeSelf = new ArrayList<>();
     }
 
+    /**
+     * implements onBackPressed function for different fragments
+     * <p>
+     * Show, Input: return to DecisionFragment
+     * Decision: Double click to exit
+     * ServiceRunning: service stop
+     */
     @Override
     public void onBackPressed() {
-        //super.onBackPressed();
         boolean show = getFragmentManager().findFragmentById(R.id.container) instanceof ShowFragment;
         boolean input = getFragmentManager().findFragmentById(R.id.container) instanceof InputFragment;
         boolean decision = getFragmentManager().findFragmentById(R.id.container) instanceof DecisionFragment;
@@ -153,8 +167,10 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             fab.setVisibility(View.INVISIBLE);
         } else if (decision && (visible == 0) && (counter < 1)) {
             counter++;
+            // double click on "Back" to exit
             Toast.makeText(getApplicationContext(), "Press back again for exit", Toast.LENGTH_SHORT).show();
         } else if (decision && (visible == 0) && (counter == 1)) {
+            // exit
             counter = 0;
             Intent intent = new Intent(Intent.ACTION_MAIN);
             intent.addCategory(Intent.CATEGORY_HOME);
@@ -224,13 +240,13 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        //Check if it is the right request code
+        // Check if it is the right request code
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            //Check if it is the permission we have asked for and if it has been granted
+            // Check if it is the permission we have asked for and if it has been granted
             if (permissions.length == 1 &&
                     permissions[0].equals(Manifest.permission.ACCESS_FINE_LOCATION) &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                //If permission was granted enable location
+                // If permission was granted -> enable location
                 enableMyLocation();
             }
         }
@@ -240,9 +256,9 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     protected void onResume() {
         super.onResume();
 
-        //Check if the receiver is already initialized
+        // Check if the receiver is already initialized
         if (locationReceiver == null) {
-            //Initialize a new receiver
+            // Initialize a new receiver
             locationReceiver = new BroadcastReceiver() {
                 /**
                  * Is automatically called if a new broadcast is receiverd
@@ -251,28 +267,29 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                  */
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    //Check if we received the correct broadcast
+                    // Check if we received the correct broadcast
                     if (intent.getAction().equals(SensorThread.LOCATION_BROADCAST)) {
                         Log.d(TAG, "Broadcast received");
-                        //Get the location information from the intent
+                        // Get the location information from the broadcast
                         Location location = intent.getParcelableExtra(SensorThread.LOCATION_EXTRA);
                         lat = location.getLatitude();
                         lng = location.getLongitude();
                         if (getFragmentManager().findFragmentById(R.id.container) instanceof ShowFragment) {
-                            //upload position
+                            // if person A, upload position
                             uploadPos(location);
                             routeSelf.add(new LatLng(lat, lng));
                             startInput(routeSelf);
                         } else if (getFragmentManager().findFragmentById(R.id.container) instanceof InputFragment) {
-                            if (location.getTime() - lastUpdateTime > 1000 * 10) {
-                                //Toast.makeText(getApplicationContext(), "Download position after " + (location.getTime() - lastUpdateTime), Toast.LENGTH_LONG).show();
+                            // if person B, download route for each 5 seconds
+                            if (location.getTime() - lastUpdateTime > 1000 * 5) {
                                 Log.d(TAG, "onReceive: Download position after " + (location.getTime() - lastUpdateTime));
                                 downloadPos();
                                 lastUpdateTime = location.getTime();
                             }
                         }
-                        //Adjust the zoom and position of the map
-                        //int zoom = (17 - Math.round(location.getSpeed() / 8f));
+                        // Adjust the zoom and position of the map
+                        // Commend out because not friendly to user, map changed for each state
+//                        int zoom = (17 - Math.round(location.getSpeed() / 8f));
 //                        if (map != null) {
 //                            map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), zoom));
 //                        }
@@ -280,9 +297,9 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                 }
             };
         }
-        //Create a new filter such that we only receive the desired broadcasts
+        // Create a new filter such that we only receive the desired broadcasts
         IntentFilter intentFilter = new IntentFilter(SensorThread.LOCATION_BROADCAST);
-        //Register the broadcast
+        // Register the broadcast
         registerReceiver(locationReceiver, intentFilter);
     }
 
@@ -291,7 +308,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         super.onPause();
 
         if (locationReceiver != null) {
-            //Unregister receiver
+            // Unregister receiver
             unregisterReceiver(locationReceiver);
             locationReceiver = null;
         }
@@ -302,9 +319,11 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
         String stringWatermark = String.valueOf("ID " + randId + " PIN " + randPin);
         String status = "TRACKING";
-        tvWatermark.setText(Html.fromHtml("<b><font color=#FFA726>" + status + "</font></b>" +  "<br/>"
+        // show user specific information on TextView
+        tvWatermark.setText(Html.fromHtml("<b><font color=#FFA726>" + status + "</font></b>" + "<br/>"
                 + "<font>" + stringWatermark + "</font>"));
 
+        // prepare JSONObject
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("user_id", randId);
@@ -324,11 +343,11 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                             try {
                                 JSONObject jsonObject1 = response.getJSONObject("0");
                                 if (jsonObject1.getString("error").equals("false")) {
-                                    //Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
-                                    // Set view away
+                                    // if success, set view away
                                     startLeaderThread();
                                     moveContainerAway();
                                 } else {
+                                    // if error, show error message
                                     Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
                                     Log.d(TAG, "onResponse: " + jsonObject1.getString("errorMsg"));
                                 }
@@ -341,13 +360,13 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        // TODO: Handle error
+                        // TODO: Handle error: retry
                         Log.d(TAG, "onResponse: error detected" + error.toString());
                         Toast.makeText(getApplicationContext(), error.toString(), Toast.LENGTH_SHORT).show();
                     }
                 });
 
-        // Access the RequestQueue through your singleton class.
+        // Access the RequestQueue through singleton class.
         MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
     }
 
@@ -367,11 +386,13 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             return;
         }
 
+        // show user specific information on TextView
         String stringWatermark = String.valueOf("ID " + etId.getText() + " PIN " + etPin.getText());
         String status = "FOLLOWING";
         tvWatermark.setText(Html.fromHtml("<b><font color=#FFA726>" + status + "</font></b>"
-                +  "<br/>" + "<font>" + stringWatermark + "</font>"));
+                + "<br/>" + "<font>" + stringWatermark + "</font>"));
 
+        // prepare JSONObject
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("user_id", etId.getText());
@@ -380,6 +401,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             Log.d(TAG, "registerId: Exception: " + e.toString());
 
         }
+
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
                 (Request.Method.POST, url, jsonObject, new Response.Listener<JSONObject>() {
 
@@ -390,14 +412,14 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                         try {
                             JSONObject jsonObject1 = response.getJSONObject("0");
                             if (jsonObject1.getString("error").equals("false")) {
-                                //Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
-                                // Set view away
+                                // If success, move container away
                                 startLeaderThread();
                                 moveContainerAway();
                             } else {
+                                // if error, show error message
                                 Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
                                 Log.d(TAG, "onResponse: " + jsonObject1.getString("errorMsg"));
-                                //TODO regenerate id
+                                // TODO: regenerate id and pin
                             }
                         } catch (JSONException e) {
                             Log.d(TAG, "onResponse: error response: " + e.toString());
@@ -407,20 +429,20 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
 
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        // TODO: Handle error
+                        // TODO: Handle error: retry
                         Log.d(TAG, "onResponse: error detected" + error.toString());
                         Toast.makeText(getApplicationContext(), error.toString(), Toast.LENGTH_SHORT).show();
                     }
                 });
 
-        // Access the RequestQueue through your singleton class.
+        // Access the RequestQueue through singleton class.
         MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
     }
 
-    //TODO upload position in thread
     public void uploadPos(Location location) {
         String url = "https://followmeapp.azurewebsites.net/upload.php";
 
+        // Prepare JSONObject
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("user_id", "800000017");
@@ -431,7 +453,6 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             Log.d(TAG, "registerId: Exception: " + e.toString());
         }
 
-        // get and save cookie
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
                 (Request.Method.POST, url, jsonObject, new Response.Listener<JSONObject>() {
 
@@ -461,7 +482,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                     }
                 });
 
-        // Access the RequestQueue through your singleton class.
+        // Access the RequestQueue through singleton class.
         MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
     }
 
@@ -480,34 +501,36 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                             try {
                                 JSONObject jsonObject1 = response.getJSONObject("0");
                                 if (jsonObject1.getString("error").equals("false")) {
+                                    // If Success, process array of positions and show in map
                                     List<LatLng> points = new ArrayList<>();
                                     route.clear();
                                     for (int i = 1; i < response.length() - 1; ++i) {
                                         jsonObject1 = response.getJSONObject(String.valueOf(i));
 
-                                        //Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
                                         leaderLat = jsonObject1.getDouble("lat");
                                         leaderLng = jsonObject1.getDouble("lng");
-                                        // ask for route
 
                                         if (i == 1) {
-                                            points.add(new LatLng(lat, lng));
-                                            points.add(new LatLng(leaderLat, leaderLng));
-                                            //getGoogleMapPoly(points);
+                                            points.add(new LatLng(lat, lng)); // Current position of B
+                                            points.add(new LatLng(leaderLat, leaderLng)); // Start point of A
                                         }
                                         route.add(new LatLng(leaderLat, leaderLng));
                                     }
 
                                     jsonObject1 = response.getJSONObject(String.valueOf(response.length() - 1));
-                                    live = jsonObject1.getString("live").equals("1");
+                                    live = jsonObject1.getString("live").equals("1");// A is online or not
 
                                     if (!nearRoute && !nearRoute(points.get(0), points.get(1)))
+                                        // Ask for route
                                         getGoogleMapPoly(points);
                                     else {
+                                        // If person B is currently near the start point, then no need
+                                        // to ask google for route, just show the route from A
                                         nearRoute = true;
                                         startInput(points);
                                     }
                                 } else {
+                                    // if error, show error message
                                     Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
                                     Log.d(TAG, "onResponse: " + jsonObject1.getString("errorMsg"));
                                 }
@@ -526,10 +549,15 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                     }
                 });
 
-        // Access the RequestQueue through your singleton class.
+        // Access the RequestQueue through singleton class.
         MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
     }
 
+    /**
+     * Get route from google for B to get to the start point of A
+     *
+     * @param startEnd List with the current position of B and start point of A
+     */
     public void getGoogleMapPoly(final List<LatLng> startEnd) {
         String url = "https://maps.googleapis.com/maps/api/directions/json?origin="
                 + startEnd.get(0).latitude
@@ -555,23 +583,31 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                         if (response.has("status")) {
                             try {
                                 if (response.getString("status").equals("OK")) {
+                                    // If Success, process route and show in map
                                     JSONObject jsonObject1 = response.getJSONArray("routes").getJSONObject(0);
                                     JSONObject polylines = jsonObject1.getJSONObject("overview_polyline");
                                     if (polylines.has("points")) {
-                                        //Toast.makeText(getApplicationContext(), jsonObject1.getString("errorMsg"), Toast.LENGTH_SHORT).show();
+                                        // Decode points' string to list of points
                                         List<LatLng> points = PolyUtil.decode(polylines.getString("points"));
                                         if (!points.get(0).equals(startEnd.get(0))) {
+                                            // If the first point of the route not equals to current position
+                                            // then add current position to the route
                                             points.add(0, startEnd.get(0));
                                         }
                                         if (!points.get(points.size() - 1).equals(startEnd.get(1))) {
+                                            // If the last point of the route not equals to start point of A
+                                            // add the start point of A to the route
                                             points.add(startEnd.get(1));
                                         }
+                                        // draw the route in map
                                         startInput(points);
                                     } else {
+                                        // if error, show error message
                                         Toast.makeText(getApplicationContext(), "error while getting route", Toast.LENGTH_SHORT).show();
                                         Log.d(TAG, "onResponse: error while getting route");
                                     }
                                 } else {
+                                    // if error, show error message
                                     Toast.makeText(getApplicationContext(), "can't connect to google map", Toast.LENGTH_SHORT).show();
                                 }
                             } catch (JSONException e) {
@@ -588,24 +624,30 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                     }
                 });
 
-        // Access the RequestQueue through your singleton class.
+        // Access the RequestQueue through singleton class.
         MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
     }
 
+    /**
+     * Show route in map
+     *
+     * @param points List of points
+     */
     public void startInput(List<LatLng> points) {
         if (map != null) {
-            //Clear the map from marker and lines
+            // Clear the map from marker and lines
             map.clear();
 
             if (getFragmentManager().findFragmentById(R.id.container) instanceof ShowFragment) {
-                //Configure the linestyle and add points
+                // If person A, show only route from itself
+                // Configure the line style and add points
                 PolylineOptions options = new PolylineOptions()
                         .width(5)
                         .color(Color.BLUE)
                         .geodesic(true);
                 options.addAll(points);
 
-                //Add line to map
+                // Add line to map
                 map.addPolyline(options);
 
                 //Add marker to map
@@ -619,9 +661,9 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                 return;
             }
 
-            //Move camera to points and add marker for start and end point in case we have recorded points
             if (points.size() > 0) {
-                //Configure the linestyle and add points
+                // If person B, show route to start point and route from A
+                // Configure the linestyle and add points
                 PolylineOptions options = new PolylineOptions()
                         .width(5)
                         .color(Color.BLUE)
@@ -630,10 +672,10 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                     options.addAll(points);
                 options.addAll(route);
 
-                //Add line to map
+                // Add line to map
                 map.addPolyline(options);
 
-                //Add marker to map
+                // Add marker to map
 //                map.addMarker(new MarkerOptions().position(points.get(0))
 //                        .icon(BitmapDescriptorFactory
 //                                .defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
@@ -643,22 +685,25 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                                 .defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))
                         .title("Start"));
                 if (live)
+                    // If person A is live, then show circle
                     map.addCircle(new CircleOptions().center(route.get(route.size() - 1))
                             .fillColor(0xFFFFA726).strokeColor(0xFFC77800)).setRadius(2);
                 else
+                    // If person B is offline, then show marker
                     map.addMarker(new MarkerOptions().position(route.get(route.size() - 1))
                             .icon(BitmapDescriptorFactory
                                     .defaultMarker(BitmapDescriptorFactory.HUE_RED))
                             .title("End"));
 
-                //Move camera to the start position
-                //map.animateCamera(CameraUpdateFactory.newLatLngZoom(points.get(0), 14));
+                // Move camera to the start position
+                // map.animateCamera(CameraUpdateFactory.newLatLngZoom(points.get(0), 14));
             }
         }
 
     }
 
     public void confirmStopRequest() {
+        // Show dialog fragment
         DialogInterface.OnClickListener listener = new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -672,9 +717,11 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
             }
         };
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        if(getFragmentManager().findFragmentById(R.id.container) instanceof ShowFragment)
-        builder.setMessage("Are you sure you want to end tracking?").setPositiveButton("Yes", listener).setNegativeButton("No", listener).show();
-        else if(getFragmentManager().findFragmentById(R.id.container) instanceof InputFragment)
+        if (getFragmentManager().findFragmentById(R.id.container) instanceof ShowFragment)
+            // Dialog for person A
+            builder.setMessage("Are you sure you want to end tracking?").setPositiveButton("Yes", listener).setNegativeButton("No", listener).show();
+        else if (getFragmentManager().findFragmentById(R.id.container) instanceof InputFragment)
+            // Dialog for person B
             builder.setMessage("Are you sure you want to end following?").setPositiveButton("Yes", listener).setNegativeButton("No", listener).show();
     }
 
@@ -695,28 +742,28 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     public boolean validateForm() {
         boolean valid = true;
 
-        //Get username from EditText
+        // Get username from EditText
         String stringId = etId.getText().toString();
         String stringPin = etPin.getText().toString();
-        //Check if it is empty
+        // Check if it is empty
         if (stringId.isEmpty()) {
-            //Set an error if Id is empty
+            // Set an error if Id is empty
             etId.setError("required");
             valid = false;
         } else if (stringPin.isEmpty()) {
-            //Set an error if Pin is empty
+            // Set an error if Pin is empty
             etPin.setError("required");
             valid = false;
         } else if (!(stringId.length() == 9)) {
-            //Set an error if Id is not 9 digits
+            // Set an error if Id is not 9 digits
             etId.setError("Your ID needs to be a 9-digit number");
             valid = false;
         } else if (!(stringPin.length() == 4)) {
-            //Set an error if Pin is not 9 digits
+            // Set an error if Pin is not 9 digits
             etPin.setError("Your PIN needs to be a 4-digit number");
             valid = false;
         } else {
-            //Remove error if not empty
+            // Remove error if not empty
             etId.setError(null);
             etPin.setError(null);
         }
@@ -724,6 +771,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
     }
 
     private boolean nearRoute(LatLng start, LatLng end) {
+        // Actually there is a function to calculate distance in class Location :)
         // Site: https://www.movable-type.co.uk/scripts/latlong.html
         int R = 6371000; // metres
         double phi1 = Math.toRadians(start.latitude);
@@ -774,7 +822,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                     }
                 });
 
-        // Access the RequestQueue through your singleton class.
+        // Access the RequestQueue through singleton class.
         MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
     }
 }
